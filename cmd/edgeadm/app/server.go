@@ -18,12 +18,11 @@ package app
 
 import (
 	"flag"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 	"os"
 	"path"
-
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 
 	cliflag "k8s.io/component-base/cli/flag"
 
@@ -33,8 +32,6 @@ import (
 	"github.com/superedge/edgeadm/pkg/edgeadm/cmd/revert"
 	"github.com/superedge/edgeadm/pkg/edgeadm/constant"
 	"github.com/superedge/edgeadm/pkg/util/kubeadm"
-
-	"k8s.io/klog/v2"
 )
 
 var (
@@ -55,9 +52,6 @@ func NewEdgeadmCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			cmd.Help()
 		},
 	}
-
-	klog.InitFlags(nil)
-	defer klog.Flush()
 
 	// add kubeconfig to persistent flags
 	globalFlagSet(nil)
@@ -89,12 +83,10 @@ func globalFlagSet(flagset *flag.FlagSet) {
 	flagset.StringVar(&edgeadmConf.WorkerPath, "worker-path", "/tmp/", "Worker path of install edge kubernetes cluster.")
 	flagset.StringVar(&edgeadmConf.Kubeconfig, "kubeconfig", "~/.kube/config", "The path to the kubeconfig file. [necessary]")
 
+	pflag.CommandLine.AddGoFlagSet(flagset)
+	pflag.CommandLine.SetNormalizeFunc(cliflag.WordSepNormalizeFunc)
 	os.RemoveAll(edgeadmConf.WorkerPath)
 	os.MkdirAll(path.Dir(edgeadmConf.WorkerPath+constant.EdgeClusterLogFile), 0755)
 	pflag.Set("log_file", edgeadmConf.WorkerPath+constant.EdgeClusterLogFile)
-
-	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	pflag.CommandLine.SetNormalizeFunc(cliflag.WordSepNormalizeFunc)
-
-	//flag.Parse()
+	flag.Parse()
 }
