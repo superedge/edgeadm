@@ -41,9 +41,7 @@ arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && 
 
 - 将边缘集群回退成普通集群: `edgeadm revert --kubeconfig admin.kubeconfig`
 
-- [edgeadm 详细使用](./install_via_edgeadm_CN.md)
-
-详情见：[一键转换](./installation/install_via_edgeadm_CN.md)
+- [edgeadm 一键转换](./installation/install_via_edgeadm_CN.md)
 
 #### 3. 以Addon方式部署SuperEdge
 - [Addon方式部署](./installation/addon_superedge_CN.md)
