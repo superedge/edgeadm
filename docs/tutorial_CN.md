@@ -4,7 +4,7 @@
 您可以选择使用SuperEdge Release的版本，也可以根据需要使用源代码编译出符合您需求的版本
 
 #### 1. 选择Release版本
-- [版本列表](../CHANGELOG/README.md)
+- [版本列表](https://github.com/superedge/superedge/releases)
 
 #### 2. 我要编译源代码
 
