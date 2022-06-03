@@ -33,7 +33,7 @@ arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && 
 ./edgeadm join <Master节点外网IP/Master节点内网IP/域名>:Port --token xxxx --discovery-token-ca-cert-hash sha256:xxxxxxxxxx --install-pkg-path <edgeadm kube-*静态安装包地址> --enable-edge=true 
 ```
 
-详情见：[从零搭建边缘集群](./installation/install_edge_kubernetes_CN.md)
+详情见：[从零搭建边缘集群](./docs/installation/install_edge_kubernetes_CN.md)
 
 #### 2. 一键将已有集群转换成边缘集群
 
@@ -41,13 +41,13 @@ arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && 
 
 - 将边缘集群回退成普通集群: `edgeadm revert --kubeconfig admin.kubeconfig`
 
-- [edgeadm 详细使用](./install_via_edgeadm_CN.md)
+- [edgeadm 详细使用](./docs/install_via_edgeadm_CN.md)
 
-详情见：[一键转换](./installation/install_via_edgeadm_CN.md)
+详情见：[一键转换](./docs/installation/install_via_edgeadm_CN.md)
 
 #### 3. 以Addon方式部署SuperEdge
-- [Addon方式部署](./installation/addon_superedge_CN.md)
+- [Addon方式部署](./docs/installation/addon_superedge_CN.md)
 
 #### 4. 我是高手，想一个个组件手工部署
 
-- [手工部署](./installation/install_manually_CN.md)
+- [手工部署](./docs/installation/install_manually_CN.md)
