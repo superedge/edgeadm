@@ -131,7 +131,7 @@
 
     >    其他体系可自行编译edgeadm和制作相应体系安装包，可参考 **5. 自定义Kubernetes静态安装包**
 
--   支持的Kubernetes版本：大于等于v1.18，提供的安装包仅提供Kubernetes v1.18.2版本；
+-   支持的Kubernetes版本：大于等于v1.18，提供的安装包仅提供Kubernetes v1.18.2 和 v1.20.6 两个版本；
 
     >   其他Kubernetes 版本可参考 **5. 自定义Kubernetes静态安装包**，自行制作。
 
@@ -147,13 +147,13 @@
 arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
 ```
 安装包大约200M，关于安装包的详细信息可查看 **5. 自定义Kubernetes静态安装包**。
->   要是下载安装包比较慢，可直接查看相应[SuperEdge相应版本](https://github.com/superedge/superedge/tags), 下载`edgeadm-linux-amd64/arm64-*.0.tgz`，并解压也是一样的。
+>   要是下载安装包比较慢，可直接查看相应[SuperEdge相应版本](https://github.com/superedge/superedge/tags), 下载`edgeadm-linux-amd64/amd64-*.0.tgz`，并解压也是一样的。
 >
 >   一键安装边缘独立Kubernetes 集群功能从SuperEdge-v0.3.0-beta.0开始支持，注意下载v0.3.0-beta.0及以后版本。
 #### <3>.安装边缘 Kubernetes Master 节点
 
 ```shell
-./edgeadm init --kubernetes-version=1.18.2 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.96.0.0/12 --pod-network-cidr=192.168.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网IP> --apiserver-advertise-address=<Master节点内网IP> --enable-edge=true -v=6
+./edgeadm init --kubernetes-version=1.20.6 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.96.0.0/12 --pod-network-cidr=192.168.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网IP,内网 IP,外网 DNS 等> --apiserver-advertise-address=<Master节点内网IP> --enable-edge=true -v=6
 ```
 其中：
 
