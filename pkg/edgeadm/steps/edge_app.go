@@ -157,12 +157,11 @@ func runTunnelAddon(c workflow.RunData) error {
 	if err != nil {
 		return err
 	}
+	return EnsureTunnelAddon(cfg, edgeadmConf, client)
 
-	data, ok := c.(phases.InitData)
-	if !ok {
-		return errors.New("addon phase invoked with an invalid data struct")
-	}
+}
 
+func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
@@ -174,7 +173,7 @@ func runTunnelAddon(c workflow.RunData) error {
 
 	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
 	TunnelCoredns := common.ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err = kubeclient.CreateResourceWithFile(client, TunnelCoredns, option)
+	err := kubeclient.CreateResourceWithFile(client, TunnelCoredns, option)
 	if err != nil {
 		return err
 	}
@@ -203,7 +202,7 @@ func runTunnelAddon(c workflow.RunData) error {
 	}
 
 	// Deploy tunnel-edge
-	if err = common.DeployTunnelEdge(data.KubeConfigPath(), client, edgeadmConf.ManifestsDir, caCertFile, caKeyFile,
+	if err = common.DeployTunnelEdge(client, edgeadmConf.ManifestsDir, caCertFile, caKeyFile,
 		edgeadmConf.TunnelCloudToken, tunnelCloudNodeAddr, tunnelCloudNodePort); err != nil {
 		klog.Errorf("Deploy tunnel-edge, error: %v", err)
 		return err
@@ -218,7 +217,10 @@ func runEdgeHealthAddon(c workflow.RunData) error {
 	if err != nil {
 		return err
 	}
+	return EnsureEdgeHealthAddon(edgeadmConf, client)
+}
 
+func EnsureEdgeHealthAddon(edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
@@ -228,7 +230,7 @@ func runEdgeHealthAddon(c workflow.RunData) error {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 func runServiceGroupAddon(c workflow.RunData) error {
@@ -236,7 +238,10 @@ func runServiceGroupAddon(c workflow.RunData) error {
 	if err != nil {
 		return err
 	}
+	return EnsureServiceGroupAddon(edgeadmConf, client)
+}
 
+func EnsureServiceGroupAddon(edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
@@ -248,30 +253,29 @@ func runServiceGroupAddon(c workflow.RunData) error {
 
 	klog.Infof("Deploy service-group success!")
 
-	return err
+	return nil
 }
 
 func runEdgeCorednsAddon(c workflow.RunData) error {
-	data, ok := c.(phases.InitData)
-	if !ok {
-		return errors.New("addon phase invoked with an invalid data struct")
-	}
-
-	client, err := data.Client()
+	cfg, edgeadmConf, client, err := getInitData(c)
 	if err != nil {
 		return err
 	}
 
 	//Add Label superedge.io.hostname to deploy edge-codedns service-group
+	return EnsureEdgeCorednsAddon(cfg, edgeadmConf, client)
+}
+
+func EnsureEdgeCorednsAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	masterLabel := map[string]string{
-		constant.EdgehostnameLabelKey: data.Cfg().NodeRegistration.Name,
+		constant.EdgehostnameLabelKey: cfg.NodeRegistration.Name,
 	}
-	if err := kubeclient.AddNodeLabel(client, data.Cfg().NodeRegistration.Name, masterLabel); err != nil {
+	if err := kubeclient.AddNodeLabel(client, cfg.NodeRegistration.Name, masterLabel); err != nil {
 		klog.Errorf("Add edged Node node label error: %v", err)
 		return err
 	}
 
-	if err := common.DeployEdgeCorednsAddon(data.KubeConfigPath(), EdgeadmConf.ManifestsDir); err != nil {
+	if err := common.DeployEdgeCorednsAddon(client, edgeadmConf.ManifestsDir); err != nil {
 		klog.Errorf("Deploy edge-coredns error: %v", err)
 		return err
 	}
@@ -284,8 +288,12 @@ func updateKubeConfig(c workflow.RunData) error {
 	if err != nil {
 		return err
 	}
+	return EnsureEdgeKubeConfig(initConfiguration, client)
 
-	if err := common.UpdateKubeProxyKubeconfig(client); err != nil {
+}
+
+func EnsureEdgeKubeConfig(cfg *kubeadmapi.InitConfiguration, client clientset.Interface) error {
+	if err := common.UpdateKubeProxyKubeconfig(client, cfg); err != nil {
 		klog.Errorf("Update kube-proxy config, error: %s", err)
 		return err
 	}
@@ -300,8 +308,8 @@ func updateKubeConfig(c workflow.RunData) error {
 		return err
 	}
 
-	if len(initConfiguration.APIServer.CertSANs) > 0 {
-		certSANs := initConfiguration.APIServer.CertSANs
+	if len(cfg.APIServer.CertSANs) > 0 {
+		certSANs := cfg.APIServer.CertSANs
 		if err := common.UpdateClusterInfoKubeconfig(client, certSANs); err != nil {
 			klog.Errorf("Update cluster-info config, error: %s", err)
 			return err
@@ -310,15 +318,19 @@ func updateKubeConfig(c workflow.RunData) error {
 
 	klog.Infof("Update Kubernetes cluster config support marginal autonomy success")
 
-	return err
+	return nil
 }
 
 func joinNodePrepare(c workflow.RunData) error {
-	cfg, egeadmConf, client, err := getInitData(c)
+	cfg, edgeadmConf, client, err := getInitData(c)
 	if err != nil {
 		return err
 	}
+	return EnsureNodePrepare(cfg, edgeadmConf, client)
 
+}
+
+func EnsureNodePrepare(cfg *kubeadmapi.InitConfiguration, egeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
@@ -332,7 +344,7 @@ func joinNodePrepare(c workflow.RunData) error {
 	}
 	klog.Infof("Prepare Config Join Node configMap success")
 
-	return err
+	return nil
 }
 
 func deleteTunnelAddon(c workflow.RunData) error {

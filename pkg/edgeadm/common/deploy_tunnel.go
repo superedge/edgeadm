@@ -8,9 +8,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 	"path/filepath"
 	"time"
@@ -53,7 +51,7 @@ func DeployTunnelAddon(kubeconfigFile string, client kubernetes.Interface, manif
 	}
 
 	// Deploy tunnel-edge
-	if err = DeployTunnelEdge(kubeconfigFile, client, manifestsDir,
+	if err = DeployTunnelEdge(client, manifestsDir,
 		caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudPublicAddr, tunnelCloudNodePort); err != nil {
 		klog.Errorf("Deploy tunnel-edge, error: %v", err)
 		return err
@@ -105,7 +103,7 @@ func GetTunnelCloudPort(clientSet kubernetes.Interface) (int32, error) {
 	return tunnelCloudNodePort, nil
 }
 
-func DeployTunnelEdge(kubeconfig string, clientSet kubernetes.Interface, manifestsDir,
+func DeployTunnelEdge(clientSet kubernetes.Interface, manifestsDir,
 	caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudNodeAddr string, tunnelCloudNodePort int32) error {
 
 	tunnelEdgeYaml, option, err := getTunnelEdgeResource(clientSet, manifestsDir, caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudNodeAddr, tunnelCloudNodePort)
@@ -118,28 +116,6 @@ func DeployTunnelEdge(kubeconfig string, clientSet kubernetes.Interface, manifes
 		return err
 	}
 
-	//
-
-	if err := EnsureEdgeSystemNamespace(clientSet); err != nil {
-		return err
-	}
-
-	// Deploy edge-coredns config
-
-	restCfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return err
-	}
-	dynamicClient, err := dynamic.NewForConfig(restCfg)
-	if err != nil {
-		klog.Errorf("Failed to get rest kubeclient, error: %v", err)
-		return err
-	}
-	kubeClient, err := kubernetes.NewForConfig(restCfg)
-	if err != nil {
-		klog.Errorf("Failed to get dynamic kubeclient, error: %v", err)
-		return err
-	}
 	// Deploy edge-coredns deploymentGrid
 	gridoption := map[string]interface{}{
 		"Namespace": constant.NamespaceEdgeSystem,
@@ -147,7 +123,7 @@ func DeployTunnelEdge(kubeconfig string, clientSet kubernetes.Interface, manifes
 
 	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
 
-		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.TunnelEdgeDeploymentGridYaml, gridoption, true)
+		err = kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, manifests.TunnelEdgeDeploymentGridYaml, gridoption, true)
 		if err != nil {
 			klog.V(2).Infof("Waiting deploy tunnel-edge DeploymentGrid, system message: %v", err)
 			return false, nil
@@ -158,7 +134,7 @@ func DeployTunnelEdge(kubeconfig string, clientSet kubernetes.Interface, manifes
 
 	// Deploy edge-coredns serviceGrid
 	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.TunnelEdgeServiceGridYaml, gridoption, true)
+		err = kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, manifests.TunnelEdgeServiceGridYaml, gridoption, true)
 		if err != nil {
 			klog.V(2).Infof("Waiting deploy tunnel-edge ServiceGrid, system message: %v", err)
 			return false, nil

@@ -130,7 +130,7 @@ func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	klog.Infof("Deploy service-group success!")
 
 	// Deploy edge-coredns
-	if err := DeployEdgeCorednsAddon(configPath, manifestsDir); err != nil {
+	if err := DeployEdgeCorednsAddon(client, manifestsDir); err != nil {
 		klog.Errorf("Deploy edge-coredns error: %v", err)
 		return err
 	}

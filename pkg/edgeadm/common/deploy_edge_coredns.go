@@ -30,11 +30,7 @@ import (
 )
 
 // DeployEdgeCorednsAddon installs edge node CoreDNS addon to a Kubernetes cluster
-func DeployEdgeCorednsAddon(kubeconfigFile string, manifestsDir string) error {
-	client, err := kubeclient.GetClientSet(kubeconfigFile)
-	if err != nil {
-		return err
-	}
+func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string) error {
 
 	if err := EnsureEdgeSystemNamespace(client); err != nil {
 		return err
@@ -47,31 +43,15 @@ func DeployEdgeCorednsAddon(kubeconfigFile string, manifestsDir string) error {
 	userEdgeCorednsConfig := filepath.Join(manifestsDir, manifests.APPEdgeCorednsConfig)
 	edgeCorednsConfig := ReadYaml(userEdgeCorednsConfig, manifests.EdgeCorednsConfigYaml)
 	// Waiting DeploymentGrid apply success
-	err = kubeclient.CreateResourceWithFile(client, edgeCorednsConfig, option)
+	err := kubeclient.CreateResourceWithFile(client, edgeCorednsConfig, option)
 	if err != nil {
 		klog.Errorf("Deploy edge-coredns config error: %v", err)
 		return err
 	}
 
-	restCfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile)
-	if err != nil {
-		return err
-	}
-
-	dynamicClient, err := dynamic.NewForConfig(restCfg)
-	if err != nil {
-		klog.Errorf("Failed to get rest kubeclient, error: %v", err)
-		return err
-	}
-	kubeClient, err := kubernetes.NewForConfig(restCfg)
-	if err != nil {
-		klog.Errorf("Failed to get dynamic kubeclient, error: %v", err)
-		return err
-	}
-
 	// Deploy edge-coredns deploymentGrid
 	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.EdgeCorednsDeploymentGridYaml, option, true)
+		err = kubeclient.CreateOrDeleteResourceWithFile(client, nil, manifests.EdgeCorednsDeploymentGridYaml, option, true)
 		if err != nil {
 			klog.V(2).Infof("Waiting deploy edge-coredns DeploymentGrid, system message: %v", err)
 			return false, nil
@@ -82,7 +62,7 @@ func DeployEdgeCorednsAddon(kubeconfigFile string, manifestsDir string) error {
 
 	// Deploy edge-coredns serviceGrid
 	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.EdgeCorednsServiceGridYaml, option, true)
+		err = kubeclient.CreateOrDeleteResourceWithFile(client, nil, manifests.EdgeCorednsServiceGridYaml, option, true)
 		if err != nil {
 			klog.V(2).Infof("Waiting deploy edge-coredns ServiceGrid, system message: %v", err)
 			return false, nil
