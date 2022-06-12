@@ -8,6 +8,7 @@ const (
 	ManifestsDir       = "manifests-dir"
 	HANetworkInterface = "interface"
 	ContainerRuntime   = "runtime"
+	EdgeVersion        = "edge-version"
 )
 
 const (

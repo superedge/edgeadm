@@ -132,7 +132,7 @@ spec:
             effect: "NoSchedule"
         containers:
         - name: coredns
-          image: superedge.tencentcloudcr.com/superedge/coredns:1.6.9
+          image: {{.CoreDnsImage}}
           imagePullPolicy: IfNotPresent
           resources:
             limits:

@@ -168,7 +168,8 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 
 	// Deploy tunnel-coredns
 	option := map[string]interface{}{
-		"Namespace": constant.NamespaceEdgeSystem,
+		"Namespace":    constant.NamespaceEdgeSystem,
+		"CoreDnsImage": common.GetEdgeDnsImage(cfg),
 	}
 
 	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
@@ -184,7 +185,7 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 	caKeyFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CAKeyName)
 	caCertFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CACertName)
 	if err = common.DeployTunnelCloud(client, edgeadmConf.ManifestsDir,
-		caCertFile, caKeyFile, edgeadmConf.TunnelCloudToken, certSANs); err != nil {
+		caCertFile, caKeyFile, edgeadmConf.TunnelCloudToken, certSANs, cfg, edgeadmConf); err != nil {
 		klog.Errorf("Deploy tunnel-cloud, error: %v", err)
 		return err
 	}
@@ -203,7 +204,7 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 
 	// Deploy tunnel-edge
 	if err = common.DeployTunnelEdge(client, edgeadmConf.ManifestsDir, caCertFile, caKeyFile,
-		edgeadmConf.TunnelCloudToken, tunnelCloudNodeAddr, tunnelCloudNodePort); err != nil {
+		edgeadmConf.TunnelCloudToken, tunnelCloudNodeAddr, tunnelCloudNodePort, cfg, edgeadmConf); err != nil {
 		klog.Errorf("Deploy tunnel-edge, error: %v", err)
 		return err
 	}
@@ -213,19 +214,19 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 }
 
 func runEdgeHealthAddon(c workflow.RunData) error {
-	_, edgeadmConf, client, err := getInitData(c)
+	cfg, edgeadmConf, client, err := getInitData(c)
 	if err != nil {
 		return err
 	}
-	return EnsureEdgeHealthAddon(edgeadmConf, client)
+	return EnsureEdgeHealthAddon(cfg, edgeadmConf, client)
 }
 
-func EnsureEdgeHealthAddon(edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
+func EnsureEdgeHealthAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
 
-	if err := common.DeployEdgeHealth(client, edgeadmConf.ManifestsDir); err != nil {
+	if err := common.DeployEdgeHealth(client, edgeadmConf.ManifestsDir, cfg, edgeadmConf); err != nil {
 		klog.Errorf("Deploy edge health, error: %s", err)
 		return err
 	}
@@ -234,19 +235,19 @@ func EnsureEdgeHealthAddon(edgeadmConf *cmd.EdgeadmConfig, client clientset.Inte
 }
 
 func runServiceGroupAddon(c workflow.RunData) error {
-	_, edgeadmConf, client, err := getInitData(c)
+	cfg, edgeadmConf, client, err := getInitData(c)
 	if err != nil {
 		return err
 	}
-	return EnsureServiceGroupAddon(edgeadmConf, client)
+	return EnsureServiceGroupAddon(cfg, edgeadmConf, client)
 }
 
-func EnsureServiceGroupAddon(edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
+func EnsureServiceGroupAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
 
-	if err := common.DeployServiceGroup(client, edgeadmConf.ManifestsDir); err != nil {
+	if err := common.DeployServiceGroup(client, edgeadmConf.ManifestsDir, cfg, edgeadmConf); err != nil {
 		klog.Errorf("Deploy serivce group, error: %s", err)
 		return err
 	}
@@ -275,7 +276,7 @@ func EnsureEdgeCorednsAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.
 		return err
 	}
 
-	if err := common.DeployEdgeCorednsAddon(client, edgeadmConf.ManifestsDir); err != nil {
+	if err := common.DeployEdgeCorednsAddon(client, edgeadmConf.ManifestsDir, cfg); err != nil {
 		klog.Errorf("Deploy edge-coredns error: %v", err)
 		return err
 	}
@@ -422,7 +423,7 @@ func deleteEdgeHealthAddon(c workflow.RunData) error {
 }
 
 func deleteServiceGroupAddon(c workflow.RunData) error {
-	_, edgeadmConf, client, err := getInitData(c)
+	_, _, client, err := getInitData(c)
 	if err != nil {
 		return err
 	}
@@ -432,7 +433,7 @@ func deleteServiceGroupAddon(c workflow.RunData) error {
 		return nil
 	}
 
-	if err := common.DeleteServiceGroup(client, edgeadmConf.ManifestsDir); err != nil {
+	if err := common.DeleteServiceGroup(client); err != nil {
 		klog.Errorf("Delete serivce group, error: %s", err)
 		return err
 	}

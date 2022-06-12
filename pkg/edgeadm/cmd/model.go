@@ -10,4 +10,5 @@ type EdgeadmConfig struct {
 	KubeVIPInterface string
 	DefaultHA        string
 	ContainerRuntime string
+	Version          string
 }

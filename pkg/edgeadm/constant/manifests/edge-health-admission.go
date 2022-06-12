@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
         - name: edge-health-admission
-          image: superedge.tencentcloudcr.com/superedge/edge-health-admission:v0.8.0
+          image: {{.EdgeHealthAdmissionImage}}
           imagePullPolicy: Always
           command:
             - edge-health-admission

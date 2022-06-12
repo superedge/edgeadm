@@ -5,11 +5,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"path/filepath"
 	"time"
 
@@ -37,7 +39,7 @@ func DeployTunnelAddon(kubeconfigFile string, client kubernetes.Interface, manif
 	// Deploy tunnel-cloud
 	tunnelCloudToken := util.GetRandToken(32)
 	if err = DeployTunnelCloud(client, manifestsDir,
-		caCertFile, caKeyFile, tunnelCloudToken, certSANs); err != nil {
+		caCertFile, caKeyFile, tunnelCloudToken, certSANs, nil, nil); err != nil {
 		klog.Errorf("Deploy tunnel-cloud, error: %v", err)
 		return err
 	}
@@ -52,7 +54,7 @@ func DeployTunnelAddon(kubeconfigFile string, client kubernetes.Interface, manif
 
 	// Deploy tunnel-edge
 	if err = DeployTunnelEdge(client, manifestsDir,
-		caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudPublicAddr, tunnelCloudNodePort); err != nil {
+		caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudPublicAddr, tunnelCloudNodePort, nil, nil); err != nil {
 		klog.Errorf("Deploy tunnel-edge, error: %v", err)
 		return err
 	}
@@ -62,11 +64,16 @@ func DeployTunnelAddon(kubeconfigFile string, client kubernetes.Interface, manif
 	return err
 }
 
-func DeployTunnelCloud(clientSet kubernetes.Interface, manifestsDir, caCertFile, caKeyFile, tunnelCloudToken string, certSANs []string) error {
+func DeployTunnelCloud(clientSet kubernetes.Interface, manifestsDir, caCertFile, caKeyFile, tunnelCloudToken string, certSANs []string, cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig) error {
 	tunnelCloudYaml, option, err := getTunnelCloudResource(clientSet, manifestsDir, caCertFile, caKeyFile, tunnelCloudToken, certSANs)
 	if err != nil {
 		return err
 	}
+	tunnelImage, err := GetSuperEdgeImage("tunnel", cfg, edgeadmConf)
+	if err != nil {
+		return err
+	}
+	option.(map[string]interface{})["TunnelImage"] = tunnelImage
 	err = kubeclient.CreateResourceWithFile(clientSet, tunnelCloudYaml, option)
 	if err != nil {
 		return err
@@ -104,7 +111,7 @@ func GetTunnelCloudPort(clientSet kubernetes.Interface) (int32, error) {
 }
 
 func DeployTunnelEdge(clientSet kubernetes.Interface, manifestsDir,
-	caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudNodeAddr string, tunnelCloudNodePort int32) error {
+	caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudNodeAddr string, tunnelCloudNodePort int32, cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig) error {
 
 	tunnelEdgeYaml, option, err := getTunnelEdgeResource(clientSet, manifestsDir, caCertFile, caKeyFile, tunnelCloudToken, tunnelCloudNodeAddr, tunnelCloudNodePort)
 	if err != nil {
@@ -116,9 +123,14 @@ func DeployTunnelEdge(clientSet kubernetes.Interface, manifestsDir,
 		return err
 	}
 
+	tunnelImage, err := GetSuperEdgeImage("tunnel", cfg, edgeadmConf)
+	if err != nil {
+		return err
+	}
 	// Deploy edge-coredns deploymentGrid
 	gridoption := map[string]interface{}{
-		"Namespace": constant.NamespaceEdgeSystem,
+		"Namespace":   constant.NamespaceEdgeSystem,
+		"TunnelImage": tunnelImage,
 	}
 
 	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {

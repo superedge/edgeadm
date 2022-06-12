@@ -17,6 +17,9 @@ limitations under the License.
 package steps
 
 import (
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
+	clientset "k8s.io/client-go/kubernetes"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"path/filepath"
 
 	"k8s.io/klog/v2"
@@ -67,13 +70,18 @@ func runFlannelAddon(c workflow.RunData) error {
 		return err
 	}
 	// Deploy flannel
+	return EnsureFlannelAddon(cfg, edgeadmConf, client)
+
+}
+func EnsureFlannelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	option := map[string]interface{}{
 		"PodNetworkCidr": cfg.Networking.PodSubnet,
+		"FlannelImage":   common.GetEdgeFlannel(cfg),
 	}
 
 	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.KUBE_FLANNEL)
 	flannelYaml := common.ReadYaml(userManifests, manifests.KubeFlannelYaml)
-	err = kubeclient.CreateResourceWithFile(client, flannelYaml, option)
+	err := kubeclient.CreateResourceWithFile(client, flannelYaml, option)
 	if err != nil {
 		return err
 	}

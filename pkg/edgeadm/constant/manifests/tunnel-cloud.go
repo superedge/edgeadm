@@ -154,7 +154,7 @@ spec:
       serviceAccountName: tunnel-cloud
       containers:
         - name: tunnel-cloud
-          image: superedge.tencentcloudcr.com/superedge/tunnel:v0.8.0
+          image: {{.TunnelImage}}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:

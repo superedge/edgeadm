@@ -286,6 +286,10 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 		&edgeConfig.ManifestsDir, constant.ManifestsDir, "", "Manifests document of edge kubernetes cluster.",
 	)
 
+	flagSet.StringVar(
+		&edgeConfig.Version, constant.EdgeVersion, constant.Version, "Superedge component version.",
+	)
+
 }
 
 func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {

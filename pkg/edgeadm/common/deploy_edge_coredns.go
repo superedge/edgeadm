@@ -18,6 +18,7 @@ package common
 import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"path/filepath"
 	"time"
 
@@ -30,7 +31,7 @@ import (
 )
 
 // DeployEdgeCorednsAddon installs edge node CoreDNS addon to a Kubernetes cluster
-func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string) error {
+func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration) error {
 
 	if err := EnsureEdgeSystemNamespace(client); err != nil {
 		return err
@@ -38,7 +39,8 @@ func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string) er
 
 	// Deploy edge-coredns config
 	option := map[string]interface{}{
-		"Namespace": constant.NamespaceEdgeSystem,
+		"Namespace":    constant.NamespaceEdgeSystem,
+		"CoreDnsImage": GetEdgeDnsImage(cfg),
 	}
 	userEdgeCorednsConfig := filepath.Join(manifestsDir, manifests.APPEdgeCorednsConfig)
 	edgeCorednsConfig := ReadYaml(userEdgeCorednsConfig, manifests.EdgeCorednsConfigYaml)

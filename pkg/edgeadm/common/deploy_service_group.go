@@ -19,6 +19,8 @@ package common
 import (
 	"context"
 	"errors"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"path/filepath"
 	"strings"
 
@@ -33,8 +35,8 @@ import (
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 )
 
-func DeployServiceGroup(clientSet kubernetes.Interface, manifestsDir string) error {
-	gridWrapper, gridController, option, err := getServiceGroupResource(clientSet, manifestsDir)
+func DeployServiceGroup(clientSet kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig) error {
+	gridWrapper, gridController, option, err := getServiceGroupResource(clientSet, manifestsDir, cfg, edgeConf)
 	if err != nil {
 		return err
 	}
@@ -53,18 +55,14 @@ func DeployServiceGroup(clientSet kubernetes.Interface, manifestsDir string) err
 	return nil
 }
 
-func DeleteServiceGroup(clientSet kubernetes.Interface, manifestsDir string) error {
-	gridWrapper, gridController, option, err := getServiceGroupResource(clientSet, manifestsDir)
-	if err != nil {
-		return err
-	}
+func DeleteServiceGroup(clientSet kubernetes.Interface) error {
 
-	if err := kubeclient.DeleteResourceWithFile(clientSet, gridWrapper, option); err != nil {
+	if err := kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, manifests.ApplicationGridWrapperYaml, nil, false); err != nil {
 		return err
 	}
 	klog.V(4).Infof("Delete %s success!", manifests.APP_APPLICATION_GRID_WRAPPER)
 
-	if err := kubeclient.DeleteResourceWithFile(clientSet, gridController, option); err != nil {
+	if err := kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, manifests.ApplicationGridControllerYaml, nil, false); err != nil {
 		return err
 	}
 
@@ -102,16 +100,27 @@ func GetKubeAPIServerAddr(clientSet kubernetes.Interface) (string, error) {
 	return "", errors.New("Get kube-api server addr nil\n")
 }
 
-func getServiceGroupResource(clientSet kubernetes.Interface, manifestsDir string) (string, string, interface{}, error) {
+func getServiceGroupResource(clientSet kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration, edgeCondf *cmd.EdgeadmConfig) (string, string, interface{}, error) {
 	advertiseAddress, err := GetKubeAPIServerAddr(clientSet)
 	if err != nil {
 		klog.Errorf("Get Kube-api-server add and port, error: %v", err)
 		return "", "", nil, err
 	}
-
+	gridwrapper, err := GetSuperEdgeImage("application-grid-wrapper", cfg, edgeCondf)
+	if err != nil {
+		klog.Errorf("Failed to get application-grid-wrapper, error: %v", err)
+		return "", "", nil, err
+	}
+	gridcontroller, err := GetSuperEdgeImage("application-grid-controller", cfg, edgeCondf)
+	if err != nil {
+		klog.Errorf("Failed to get application-grid-controller, error: %v", err)
+		return "", "", nil, err
+	}
 	option := map[string]interface{}{
-		"Namespace":        constant.NamespaceEdgeSystem,
-		"AdvertiseAddress": advertiseAddress,
+		"Namespace":           constant.NamespaceEdgeSystem,
+		"AdvertiseAddress":    advertiseAddress,
+		"GridWrapperImage":    gridwrapper,
+		"GridControllerImage": gridcontroller,
 	}
 	userGridWrapper := filepath.Join(manifestsDir, manifests.APP_APPLICATION_GRID_WRAPPER)
 	gridWrapper := ReadYaml(userGridWrapper, manifests.ApplicationGridWrapperYaml)
