@@ -33,7 +33,7 @@ import (
 	"k8s.io/klog/v2"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
+	kubeadmapiv1beta2 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
 	"k8s.io/kubernetes/cmd/kubeadm/app/componentconfigs"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
 	clusterinfophase "k8s.io/kubernetes/cmd/kubeadm/app/phases/bootstraptoken/clusterinfo"
@@ -365,10 +365,10 @@ func ensureKubeadmConfigConfigMap(clientSet kubernetes.Interface, configPath str
 
 // ensureKubeletConfigMap ensure a ConfigMap with the generic kubelet configuration.
 func ensureKubeletConfigMap(clientSet kubernetes.Interface, clusterConfiguration *kubeadmapi.ClusterConfiguration) error {
-	clusterCfg := &kubeadmapiv1beta3.ClusterConfiguration{
+	clusterCfg := &kubeadmapiv1beta2.ClusterConfiguration{
 		KubernetesVersion: kubeadmconstants.CurrentKubernetesVersion.String(),
 	}
-	internalcfg, err := configutil.DefaultedInitConfiguration(&kubeadmapiv1beta3.InitConfiguration{}, clusterCfg)
+	internalcfg, err := configutil.DefaultedInitConfiguration(&kubeadmapiv1beta2.InitConfiguration{}, clusterCfg)
 	if err != nil {
 		errors.Wrapf(err, "unexpected failure by DefaultedInitConfiguration: %v", clusterCfg)
 	}

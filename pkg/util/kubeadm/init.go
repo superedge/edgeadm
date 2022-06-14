@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 	"io"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
+	kubeadmapiv1beta2 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
 	"net"
 	"os"
 	"path"
@@ -107,8 +107,8 @@ type initOptions struct {
 	featureGatesString      string
 	ignorePreflightErrors   []string
 	bto                     *options.BootstrapTokenOptions
-	externalInitCfg         *kubeadmapiv1beta3.InitConfiguration
-	externalClusterCfg      *kubeadmapiv1beta3.ClusterConfiguration
+	externalInitCfg         *kubeadmapiv1beta2.InitConfiguration
+	externalClusterCfg      *kubeadmapiv1beta2.ClusterConfiguration
 	uploadCerts             bool
 	skipCertificateKeyPrint bool
 	kustomizeDir            string
@@ -286,12 +286,16 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 		&edgeConfig.ManifestsDir, constant.ManifestsDir, "", "Manifests document of edge kubernetes cluster.",
 	)
 
+	flagSet.StringVar(
+		&edgeConfig.Version, constant.EdgeVersion, constant.Version, "Superedge component version.",
+	)
+
 }
 
 func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 	flagSet.StringVar(
 		&edgeConfig.ContainerRuntime, constant.ContainerRuntime,
-		constant.ContainerRuntimeContainerd, "Container runtime support docker and containerd.",
+		constant.ContainerRuntimeDocker, "Container runtime support docker and containerd.",
 	)
 }
 
@@ -316,7 +320,7 @@ func edgeadmConfigUpdate(initOptions *initOptions, edgeadmConfig *cmd.EdgeadmCon
 		"egress-selector-config-file":      "/etc/kubernetes/kube-apiserver-conf/egress-selector-configuration.yaml",
 		"enable-aggregator-routing":        "true",
 	}
-	initOptions.externalClusterCfg.APIServer.ExtraVolumes = []kubeadmapiv1beta3.HostPathMount{
+	initOptions.externalClusterCfg.APIServer.ExtraVolumes = []kubeadmapiv1beta2.HostPathMount{
 		{
 			Name:      "kube-apiserver-conf",
 			HostPath:  "/etc/kubernetes/kube-apiserver-conf",
@@ -344,7 +348,7 @@ func edgeadmConfigUpdate(initOptions *initOptions, edgeadmConfig *cmd.EdgeadmCon
 		//Because 1.20 and above does not have a KubeSchedulerConfiguration object. Edge into manual support.
 		//schedulerConfig.ExtraArgs["config"] = constant.SchedulerConfig
 		//schedulerConfig.ExtraArgs["policy-config-file"] = constant.SchedulerPolicy
-		schedulerConfig.ExtraVolumes = append(schedulerConfig.ExtraVolumes, []kubeadmapiv1beta3.HostPathMount{
+		schedulerConfig.ExtraVolumes = append(schedulerConfig.ExtraVolumes, []kubeadmapiv1beta2.HostPathMount{
 			{
 				"kube-scheduler-config",
 				constant.SchedulerConfig,
@@ -380,7 +384,7 @@ func edgeadmConfigUpdate(initOptions *initOptions, edgeadmConfig *cmd.EdgeadmCon
 }
 
 // AddInitConfigFlags adds init flags bound to the config to the specified flagset
-func AddInitConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta3.InitConfiguration) {
+func AddInitConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta2.InitConfiguration) {
 	flagSet.StringVar(
 		&cfg.LocalAPIEndpoint.AdvertiseAddress, options.APIServerAdvertiseAddress, cfg.LocalAPIEndpoint.AdvertiseAddress,
 		"The IP address the API Server will advertise it's listening on. If not set the default network interface will be used.",
@@ -401,7 +405,7 @@ func AddInitConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta3.InitConfig
 }
 
 // AddClusterConfigFlags adds cluster flags bound to the config to the specified flagset
-func AddClusterConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta3.ClusterConfiguration, featureGatesString *string) {
+func AddClusterConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta2.ClusterConfiguration, featureGatesString *string) {
 	flagSet.StringVar(
 		&cfg.Networking.ServiceSubnet, options.NetworkingServiceSubnet, cfg.Networking.ServiceSubnet,
 		"Use alternative range of IP address for service VIPs.",
@@ -463,10 +467,10 @@ func AddInitOtherFlags(flagSet *flag.FlagSet, initOptions *initOptions) {
 // newInitOptions returns a struct ready for being used for creating cmd init flags.
 func newInitOptions() *initOptions {
 	// initialize the public kubeadm config API by applying defaults
-	externalInitCfg := &kubeadmapiv1beta3.InitConfiguration{}
+	externalInitCfg := &kubeadmapiv1beta2.InitConfiguration{}
 	kubeadmscheme.Scheme.Default(externalInitCfg)
 
-	externalClusterCfg := &kubeadmapiv1beta3.ClusterConfiguration{}
+	externalClusterCfg := &kubeadmapiv1beta2.ClusterConfiguration{}
 	kubeadmscheme.Scheme.Default(externalClusterCfg)
 
 	// Create the options object for the bootstrap token-related flags, and override the default value for .Description

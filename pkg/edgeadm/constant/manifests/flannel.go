@@ -136,7 +136,7 @@ spec:
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: superedge.tencentcloudcr.com/superedge/flannel:v0.13.0
+        image: {{.FlannelImage}}
         command:
         - cp
         args:

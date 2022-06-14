@@ -139,7 +139,7 @@ spec:
         superedge.io/node-edge: enable   # TODO select nodes labeled as edges
       containers:
         - name: application-grid-wrapper
-          image: superedge.tencentcloudcr.com/superedge/application-grid-wrapper:v0.8.0
+          image: {{.GridWrapperImage}}
           imagePullPolicy: IfNotPresent
           command:
             - /usr/local/bin/application-grid-wrapper
@@ -243,7 +243,7 @@ spec:
         - operator: "Exists"
       containers:
         - name: application-grid-wrapper
-          image: superedge.tencentcloudcr.com/superedge/application-grid-wrapper:v0.8.0
+          image: {{.GridWrapperImage}}
           imagePullPolicy: IfNotPresent
           command:
             - /usr/local/bin/application-grid-wrapper

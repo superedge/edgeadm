@@ -1,13 +1,15 @@
 package constant
 
 const (
-	ISEnableEdge       = "enable-edge"
-	DefaultHA          = "default-ha"
-	DefaultHAKubeVIP   = "kube-vip"
-	InstallPkgPath     = "install-pkg-path"
-	ManifestsDir       = "manifests-dir"
-	HANetworkInterface = "interface"
-	ContainerRuntime   = "runtime"
+	ISEnableEdge           = "enable-edge"
+	DefaultHA              = "default-ha"
+	DefaultHAKubeVIP       = "kube-vip"
+	InstallPkgPath         = "install-pkg-path"
+	ManifestsDir           = "manifests-dir"
+	HANetworkInterface     = "interface"
+	ContainerRuntime       = "runtime"
+	EdgeVersion            = "edge-version"
+	PodInfraContainerImage = "pod-infra-container-image"
 )
 
 const (

@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 	"regexp"
 	"strings"
 	"text/tabwriter"
@@ -41,7 +40,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	bootstrapapi "k8s.io/cluster-bootstrap/token/api"
 	bootstraputil "k8s.io/cluster-bootstrap/token/util"
-	bootstraptokenv1 "k8s.io/kubernetes/cmd/kubeadm/app/apis/bootstraptoken/v1"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	kubeadmscheme "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/scheme"
 	kubeadmapiv1beta2 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/validation"
@@ -90,7 +89,7 @@ func NewCmdToken(out io.Writer, errW io.Writer) *cobra.Command {
 	tokenCmd.PersistentFlags().BoolVar(&dryRun,
 		options.DryRun, dryRun, "Whether to enable dry-run mode or not")
 
-	cfg := &kubeadmapiv1beta3.InitConfiguration{}
+	cfg := &kubeadmapiv1beta2.InitConfiguration{}
 
 	// Default values for the cobra help text
 	kubeadmscheme.Scheme.Default(cfg)
@@ -226,9 +225,9 @@ func NewCmdTokenGenerate(out io.Writer) *cobra.Command {
 }
 
 // RunCreateToken generates a new bootstrap token and stores it as a secret on the server.
-func RunCreateToken(out io.Writer, client clientset.Interface, cfgPath string, initCfg *kubeadmapiv1beta3.InitConfiguration, printJoinCommand bool, certificateKey string, kubeConfigFile string) error {
+func RunCreateToken(out io.Writer, client clientset.Interface, cfgPath string, initCfg *kubeadmapiv1beta2.InitConfiguration, printJoinCommand bool, certificateKey string, kubeConfigFile string) error {
 	// ClusterConfiguration is needed just for the call to LoadOrDefaultInitConfiguration
-	clusterCfg := &kubeadmapiv1beta3.ClusterConfiguration{
+	clusterCfg := &kubeadmapiv1beta2.ClusterConfiguration{
 		// KubernetesVersion is not used, but we set this explicitly to avoid
 		// the lookup of the version from the internet when executing LoadOrDefaultInitConfiguration
 		KubernetesVersion: kubeadmconstants.CurrentKubernetesVersion.String(),
@@ -400,7 +399,7 @@ func RunListTokens(out io.Writer, errW io.Writer, client clientset.Interface, pr
 
 	for _, secret := range secrets.Items {
 		// Get the BootstrapToken struct representation from the Secret object
-		token, err := bootstraptokenv1.BootstrapTokenFromSecret(&secret)
+		token, err := kubeadmapi.BootstrapTokenFromSecret(&secret)
 		if err != nil {
 			fmt.Fprintf(errW, "%v", err)
 			continue

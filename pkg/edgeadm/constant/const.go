@@ -143,7 +143,12 @@ const ApplicationGridWrapperServiceAddr = "http://127.0.0.1:51006"
 
 const LiteAPIServerTLSCfg = `[{"key":"/var/lib/kubelet/pki/kubelet-client-current.pem","cert":"/var/lib/kubelet/pki/kubelet-client-current.pem"}]`
 
-const ImageRepository = "superedge.tencentcloudcr.com/superedge"
+const (
+	ImageRepository = "superedge.tencentcloudcr.com/superedge"
+	Version         = "v0.7.0"
+	CoreDNSVersion  = "1.6.9"
+	FlannelVersion  = "v0.13.0"
+)
 
 const (
 	App = iota

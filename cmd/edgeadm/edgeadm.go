@@ -21,8 +21,10 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
+	"k8s.io/klog/v2"
 
 	"github.com/superedge/edgeadm/cmd/edgeadm/app"
+	cliflag "k8s.io/component-base/cli/flag"
 )
 
 const (
@@ -30,18 +32,19 @@ const (
 )
 
 func main() {
-	//klog.InitFlags(nil)
-	//pflag.CommandLine.SetNormalizeFunc(cliflag.WordSepNormalizeFunc)
-	//pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+	klog.InitFlags(nil)
+	pflag.CommandLine.SetNormalizeFunc(cliflag.WordSepNormalizeFunc)
+	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
 	klogSet()
-	//defer klog.Flush()
+	defer klog.Flush()
 
 	cmd := app.NewEdgeadmCommand(os.Stdin, os.Stdout, os.Stderr)
 	cmd.GenBashCompletionFile(bashCompleteFile)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+	return
 }
 
 // We do not want these flags to show up in --help

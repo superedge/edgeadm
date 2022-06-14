@@ -117,7 +117,7 @@ spec:
         hostNetwork: true
         containers:
         - name: tunnel-edge
-          image: superedge.tencentcloudcr.com/superedge/tunnel:v0.8.0
+          image: {{.TunnelImage}}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:

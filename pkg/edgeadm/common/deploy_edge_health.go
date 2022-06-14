@@ -25,6 +25,8 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"math"
 	"math/big"
 	"path/filepath"
@@ -41,11 +43,22 @@ import (
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 )
 
-func DeployEdgeHealth(clientSet kubernetes.Interface, manifestsDir string) error {
+func DeployEdgeHealth(clientSet kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig) error {
 	yamlMap, option, err := getEdgeHealthResource(clientSet, manifestsDir)
 	if err != nil {
 		return err
 	}
+
+	edgehealthImage, err := GetSuperEdgeImage("edge-health", cfg, edgeadmConf)
+	if err != nil {
+		return err
+	}
+	edgehealthadmissionImage, err := GetSuperEdgeImage("edge-health-admission", cfg, edgeadmConf)
+	if err != nil {
+		return err
+	}
+	option.(map[string]interface{})["EdgeHealthImage"] = edgehealthImage
+	option.(map[string]interface{})["EdgeHealthAdmissionImage"] = edgehealthadmissionImage
 
 	for appName, yamlFile := range yamlMap {
 		if err := kubeclient.CreateResourceWithFile(clientSet, yamlFile, option); err != nil {

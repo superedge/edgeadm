@@ -20,7 +20,12 @@ package kubeadm
 import (
 	"fmt"
 	"io"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	kuberuntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	kubeadmapiv1beta2 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util/apiclient"
 	"net"
 	"os"
 	"path"
@@ -135,8 +140,8 @@ type joinOptions struct {
 	token                 string
 	controlPlane          bool
 	ignorePreflightErrors []string
-	externalcfg           *kubeadmapiv1beta3.JoinConfiguration
-	joinControlPlane      *kubeadmapiv1beta3.JoinControlPlane
+	externalcfg           *kubeadmapiv1beta2.JoinConfiguration
+	joinControlPlane      *kubeadmapiv1beta2.JoinControlPlane
 	kustomizeDir          string
 	patchesDir            string
 }
@@ -248,6 +253,14 @@ func NewJoinCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 		return nil
 	}
 
+	//set extra
+	if edgeConfig.PodInfraContainer != "" {
+		if joinOptions.externalcfg.NodeRegistration.KubeletExtraArgs == nil {
+			joinOptions.externalcfg.NodeRegistration.KubeletExtraArgs = make(map[string]string)
+		}
+		joinOptions.externalcfg.NodeRegistration.KubeletExtraArgs["pod-infra-container-image"] = edgeConfig.PodInfraContainer
+	}
+
 	// init node and install docker container runtime
 	joinRunner.AppendPhase(steps.NewInitNodePhase())
 	joinRunner.AppendPhase(steps.NewJoinPreparePhase(edgeConfig))
@@ -282,6 +295,10 @@ func joinConfigFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 		&edgeConfig.InstallPkgPath, constant.InstallPkgPath,
 		constant.InstallPkgNetworkLocation, "Install static package path of kubernetes cluster.",
 	)
+	flagSet.StringVar(
+		&edgeConfig.PodInfraContainer, constant.PodInfraContainerImage,
+		edgeConfig.PodInfraContainer, "Install static package path of kubernetes cluster.",
+	)
 }
 
 func joinInstallHAFlag(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
@@ -296,7 +313,7 @@ func joinInstallHAFlag(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 }
 
 // addJoinConfigFlags adds join flags bound to the config to the specified flagset
-func addJoinConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta3.JoinConfiguration, jcp *kubeadmapiv1beta3.JoinControlPlane) {
+func addJoinConfigFlags(flagSet *flag.FlagSet, cfg *kubeadmapiv1beta2.JoinConfiguration, jcp *kubeadmapiv1beta2.JoinControlPlane) {
 	flagSet.StringVar(
 		&cfg.NodeRegistration.Name, options.NodeName, cfg.NodeRegistration.Name,
 		`Specify the node name.`,
@@ -364,20 +381,20 @@ func addJoinOtherFlags(flagSet *flag.FlagSet, joinOptions *joinOptions) {
 // newJoinOptions returns a struct ready for being used for creating cmd join flags.
 func newJoinOptions() *joinOptions {
 	// initialize the public kubeadm config API by applying defaults
-	externalcfg := &kubeadmapiv1beta3.JoinConfiguration{}
+	externalcfg := &kubeadmapiv1beta2.JoinConfiguration{}
 
 	// Add optional config objects to host flags.
 	// un-set objects will be cleaned up afterwards (into newJoinData func)
-	externalcfg.Discovery.File = &kubeadmapiv1beta3.FileDiscovery{}
-	externalcfg.Discovery.BootstrapToken = &kubeadmapiv1beta3.BootstrapTokenDiscovery{}
-	externalcfg.ControlPlane = &kubeadmapiv1beta3.JoinControlPlane{}
+	externalcfg.Discovery.File = &kubeadmapiv1beta2.FileDiscovery{}
+	externalcfg.Discovery.BootstrapToken = &kubeadmapiv1beta2.BootstrapTokenDiscovery{}
+	externalcfg.ControlPlane = &kubeadmapiv1beta2.JoinControlPlane{}
 
 	// This object is used for storage of control-plane flags.
-	joinControlPlane := &kubeadmapiv1beta3.JoinControlPlane{}
+	joinControlPlane := &kubeadmapiv1beta2.JoinControlPlane{}
 
 	// Apply defaults
 	kubeadmscheme.Scheme.Default(externalcfg)
-	kubeadmapiv1beta3.SetDefaults_JoinControlPlane(joinControlPlane)
+	kubeadmapiv1beta2.SetDefaults_JoinControlPlane(joinControlPlane)
 
 	return &joinOptions{
 		externalcfg:      externalcfg,
@@ -433,8 +450,8 @@ func newJoinData(cmd *cobra.Command, args []string, opt *joinOptions, out io.Wri
 	if !opt.controlPlane {
 		// Use a defaulted JoinControlPlane object to detect if the user has passed
 		// other control-plane related flags.
-		defaultJCP := &kubeadmapiv1beta3.JoinControlPlane{}
-		kubeadmapiv1beta3.SetDefaults_JoinControlPlane(defaultJCP)
+		defaultJCP := &kubeadmapiv1beta2.JoinControlPlane{}
+		kubeadmapiv1beta2.SetDefaults_JoinControlPlane(defaultJCP)
 
 		// This list must match the JCP flags in addJoinConfigFlags()
 		joinControlPlaneFlags := []string{
@@ -478,7 +495,7 @@ func newJoinData(cmd *cobra.Command, args []string, opt *joinOptions, out io.Wri
 			return nil, errors.Errorf("File %s does not exists. Please use 'edgeadm join phase control-plane-prepare' subcommands to generate it.", adminKubeConfigPath)
 		}
 		klog.V(1).Infof("[preflight] found discovery flags missing for this command. using FileDiscovery: %s", adminKubeConfigPath)
-		opt.externalcfg.Discovery.File = &kubeadmapiv1beta3.FileDiscovery{KubeConfigPath: adminKubeConfigPath}
+		opt.externalcfg.Discovery.File = &kubeadmapiv1beta2.FileDiscovery{KubeConfigPath: adminKubeConfigPath}
 		opt.externalcfg.Discovery.BootstrapToken = nil //NB. this could be removed when we get better control on args (e.g. phases without discovery should have NoArgs )
 	}
 
@@ -634,5 +651,43 @@ func fetchInitConfiguration(tlsBootstrapCfg *clientcmdapi.Config) (*kubeadmapi.I
 		return nil, errors.Wrap(err, "unable to fetch the kubeadm-config ConfigMap")
 	}
 
+	edgeImage, err := fetchGetEdgeImageRepository(tlsClient)
+	if err != nil {
+		return nil, err
+	}
+	if edgeImage != "" {
+		initConfiguration.ClusterConfiguration.ImageRepository = edgeImage
+	}
 	return initConfiguration, nil
+}
+
+func fetchGetEdgeImageRepository(client clientset.Interface) (string, error) {
+	configMap, err := apiclient.GetConfigMapWithRetry(client, metav1.NamespaceSystem, kubeadmconstants.KubeadmConfigConfigMap)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get config map")
+	}
+	clusterConfigurationData, ok := configMap.Data[kubeadmconstants.ClusterConfigurationConfigMapKey]
+	if !ok {
+		return "", errors.Errorf("unexpected error when reading kubeadm-config ConfigMap: %s key value pair missing", kubeadmconstants.ClusterConfigurationConfigMapKey)
+	}
+	ext := kuberuntime.RawExtension{}
+	err = yaml.Unmarshal([]byte(clusterConfigurationData), &ext)
+	if err != nil {
+		return "", err
+	}
+	obj, _, err := unstructured.UnstructuredJSONScheme.Decode(ext.Raw, nil, nil)
+	if err != nil {
+		return "", err
+	}
+	unstructuredMap, err := kuberuntime.DefaultUnstructuredConverter.ToUnstructured(obj)
+	if err != nil {
+		return "", err
+	}
+	edgeImages, _, err := unstructured.NestedString(unstructuredMap, "edgeImageRepository")
+	if err != nil {
+		return "", err
+	}
+
+	return edgeImages, nil
+
 }

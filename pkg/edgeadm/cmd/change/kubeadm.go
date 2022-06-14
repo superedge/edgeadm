@@ -103,7 +103,7 @@ func (c *changeAction) runKubeamdChange() error {
 		fmt.Printf("Create %s success!\n", appName)
 	}
 
-	if err := common.DeployServiceGroup(c.clientSet, c.manifests); err != nil {
+	if err := common.DeployServiceGroup(c.clientSet, c.manifests, nil, nil); err != nil {
 		return err
 	}
 
