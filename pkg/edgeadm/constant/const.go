@@ -145,7 +145,7 @@ const LiteAPIServerTLSCfg = `[{"key":"/var/lib/kubelet/pki/kubelet-client-curren
 
 const (
 	ImageRepository = "superedge.tencentcloudcr.com/superedge"
-	Version         = "v0.8.0"
+	Version         = "v0.7.0"
 	CoreDNSVersion  = "1.6.9"
 	FlannelVersion  = "v0.13.0"
 )
