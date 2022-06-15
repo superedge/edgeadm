@@ -23,7 +23,7 @@ Options:
   DEBUG        Whether to generate debug symbols. Default is 0.
   BINS         The binaries to build. Default is all of cmd.
                This option is available when using: make build/build.multiarch
-               Example: make build BINS="lite-apiserver edgeadm"
+               Example: make build BINS="edgeadm"
                Example: make build.multiarch BINS="edgeadm" PLATFORMS="linux_amd64 linux_arm64 linux_arm" VERSION="v2.0.0"
   IMAGES       Backend images to make. Default is all of cmd.
                This option is available when using: make image/image.multiarch/push/push.multiarch

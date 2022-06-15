@@ -20,6 +20,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
+	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"net"
 	"strings"
 
@@ -35,7 +37,7 @@ import (
 
 // runCoreDNSAddon installs CoreDNS addon to a Kubernetes cluster
 func UpdateKubeConfig(client kubernetes.Interface) error {
-	if err := UpdateKubeProxyKubeconfig(client); err != nil {
+	if err := UpdateKubeProxyKubeconfig(client, nil, nil); err != nil {
 		klog.Errorf("Update kube-proxy kubeconfig, error: %s", err)
 		return err
 	}
@@ -55,7 +57,7 @@ func UpdateKubeConfig(client kubernetes.Interface) error {
 	return nil
 }
 
-func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface) error {
+func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface, cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig) error {
 	kubeProxyCM, err := kubeClient.CoreV1().ConfigMaps(
 		constant.NamespaceKubeSystem).Get(context.TODO(), constant.KubeProxy, metav1.GetOptions{})
 	if err != nil {
@@ -120,6 +122,17 @@ func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface) error {
 	for _, v := range edgeKubeProxyDS.Spec.Template.Spec.Volumes {
 		if v.Name == constant.KubeProxy {
 			v.ConfigMap.Name = constant.EdgeKubeProxy
+		}
+	}
+
+	if cfg != nil && cfg.KubernetesVersion != "" {
+		image := GetEdgeKubeProxy(edgeConf, cfg.KubernetesVersion)
+		for k, v := range edgeKubeProxyDS.Spec.Template.Spec.Containers {
+			if v.Name == "kube-proxy" {
+				v.Image = image
+				edgeKubeProxyDS.Spec.Template.Spec.Containers[k] = v
+				break
+			}
 		}
 	}
 

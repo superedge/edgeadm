@@ -136,7 +136,7 @@ spec:
       serviceAccountName: flannel
       initContainers:
       - name: install-cni
-        image: superedge.tencentcloudcr.com/superedge/flannel:v0.13.0
+        image: {{.FlannelImage}}
         command:
         - cp
         args:
@@ -150,7 +150,7 @@ spec:
           mountPath: /etc/kube-flannel/
       containers:
       - name: kube-flannel
-        image: superedge.tencentcloudcr.com/superedge/flannel:v0.13.0
+        image: {{.FlannelImage}}
         command:
         - /opt/bin/flanneld
         args:

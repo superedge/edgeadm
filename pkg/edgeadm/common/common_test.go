@@ -17,6 +17,7 @@ limitations under the License.
 package common
 
 import (
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	"k8s.io/client-go/kubernetes/fake"
 	"testing"
 )
@@ -53,4 +54,11 @@ func TestEnsureEdgexNamespace(t *testing.T) {
 	if err != nil {
 		t.Fatal("unexpected err", err)
 	}
+}
+
+func TestGetSuperEdgeImage(t *testing.T) {
+	edgeConf := &cmd.EdgeadmConfig{}
+	edgeConf.EdgeImageRepository = "superedge.tencentcloudcr.com/superedge"
+	edgeConf.Version = "v0.8.0"
+	GetSuperEdgeImage("tunnel", edgeConf)
 }

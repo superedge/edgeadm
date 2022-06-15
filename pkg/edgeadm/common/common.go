@@ -20,6 +20,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
+	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 	"os"
 	"path/filepath"
 	"time"
@@ -116,21 +118,21 @@ func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_EDGE)
 
 	// Deploy edge-health
-	if err := DeployEdgeHealth(client, manifestsDir); err != nil {
+	if err := DeployEdgeHealth(client, manifestsDir, nil); err != nil {
 		klog.Errorf("Deploy edge health, error: %s", err)
 		return err
 	}
 	klog.Infof("Deploy edge-health success!")
 
 	// Deploy service-group
-	if err := DeployServiceGroup(client, manifestsDir); err != nil {
+	if err := DeployServiceGroup(client, manifestsDir, nil, nil); err != nil {
 		klog.Errorf("Deploy serivce group, error: %s", err)
 		return err
 	}
 	klog.Infof("Deploy service-group success!")
 
 	// Deploy edge-coredns
-	if err := DeployEdgeCorednsAddon(configPath, manifestsDir); err != nil {
+	if err := DeployEdgeCorednsAddon(client, manifestsDir, nil); err != nil {
 		klog.Errorf("Deploy edge-coredns error: %v", err)
 		return err
 	}
@@ -247,7 +249,7 @@ func DeleteEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	klog.Infof("Delete edge-health success!")
 
 	// Delete service-group
-	if err := DeleteServiceGroup(client, manifestsDir); err != nil {
+	if err := DeleteServiceGroup(client); err != nil {
 		klog.Errorf("Delete serivce group, error: %s", err)
 		return err
 	}
@@ -518,4 +520,58 @@ func RemoveNamespace(client kubernetes.Interface, namespace string) error {
 		return err
 	}
 	return nil
+}
+func GetSuperEdgeImage(image string, edgeConf *cmd.EdgeadmConfig) (string, error) {
+	var version string
+	var imageRepository string
+	var err error
+
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
+		imageRepository = constant.ImageRepository
+	} else {
+		imageRepository = edgeConf.EdgeImageRepository
+	}
+	if edgeConf == nil || edgeConf.Version == "" {
+		version = constant.Version
+	} else {
+		version = edgeConf.Version
+	}
+	version, err = kubeadmutil.KubernetesReleaseVersion(version)
+	if err != nil {
+		klog.Errorf("Failed to parse image tag, tag: %v, error: %v", version, err)
+		return "", err
+	}
+	return fmt.Sprintf("%s/%s:%s", imageRepository, image, version), nil
+}
+
+func GetEdgeDnsImage(edgeConf *cmd.EdgeadmConfig) string {
+	var imageRepository string
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
+		imageRepository = constant.ImageRepository
+	} else {
+		imageRepository = edgeConf.EdgeImageRepository
+	}
+
+	return fmt.Sprintf("%s/%s:%s", imageRepository, "coredns", constant.CoreDNSVersion)
+
+}
+
+func GetEdgeFlannel(edgeConf *cmd.EdgeadmConfig) string {
+	var imageRepository string
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
+		imageRepository = constant.ImageRepository
+	} else {
+		imageRepository = edgeConf.EdgeImageRepository
+	}
+	return fmt.Sprintf("%s/%s:%s", imageRepository, "flannel", constant.FlannelVersion)
+}
+
+func GetEdgeKubeProxy(edgeConf *cmd.EdgeadmConfig, k8sversion string) string {
+	var imageRepository string
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
+		imageRepository = constant.ImageRepository
+	} else {
+		imageRepository = edgeConf.EdgeImageRepository
+	}
+	return fmt.Sprintf("%s/%s:%s", imageRepository, "kube-proxy", k8sversion)
 }

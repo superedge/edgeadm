@@ -286,6 +286,14 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 		&edgeConfig.ManifestsDir, constant.ManifestsDir, "", "Manifests document of edge kubernetes cluster.",
 	)
 
+	flagSet.StringVar(
+		&edgeConfig.Version, constant.EdgeVersion, constant.Version, "Superedge realted images' version.",
+	)
+
+	flagSet.StringVar(
+		&edgeConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+	)
+
 }
 
 func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
