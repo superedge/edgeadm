@@ -93,7 +93,7 @@ spec:
         - args:
             - -conf
             - /etc/coredns/Corefile
-          image: superedge.tencentcloudcr.com/superedge/coredns:1.6.9
+          image: {{.CoreDnsImage}}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 5

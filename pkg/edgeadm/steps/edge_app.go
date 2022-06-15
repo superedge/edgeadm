@@ -169,7 +169,7 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 	// Deploy tunnel-coredns
 	option := map[string]interface{}{
 		"Namespace":    constant.NamespaceEdgeSystem,
-		"CoreDnsImage": common.GetEdgeDnsImage(cfg),
+		"CoreDnsImage": common.GetEdgeDnsImage(edgeadmConf),
 	}
 
 	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
@@ -226,7 +226,7 @@ func EnsureEdgeHealthAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.E
 		return err
 	}
 
-	if err := common.DeployEdgeHealth(client, edgeadmConf.ManifestsDir, cfg, edgeadmConf); err != nil {
+	if err := common.DeployEdgeHealth(client, edgeadmConf.ManifestsDir, edgeadmConf); err != nil {
 		klog.Errorf("Deploy edge health, error: %s", err)
 		return err
 	}
@@ -276,7 +276,7 @@ func EnsureEdgeCorednsAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.
 		return err
 	}
 
-	if err := common.DeployEdgeCorednsAddon(client, edgeadmConf.ManifestsDir, cfg); err != nil {
+	if err := common.DeployEdgeCorednsAddon(client, edgeadmConf.ManifestsDir, edgeadmConf); err != nil {
 		klog.Errorf("Deploy edge-coredns error: %v", err)
 		return err
 	}
@@ -285,16 +285,16 @@ func EnsureEdgeCorednsAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.
 }
 
 func updateKubeConfig(c workflow.RunData) error {
-	initConfiguration, _, client, err := getInitData(c)
+	initConfiguration, edgeConf, client, err := getInitData(c)
 	if err != nil {
 		return err
 	}
-	return EnsureEdgeKubeConfig(initConfiguration, client)
+	return EnsureEdgeKubeConfig(initConfiguration, edgeConf, client)
 
 }
 
-func EnsureEdgeKubeConfig(cfg *kubeadmapi.InitConfiguration, client clientset.Interface) error {
-	if err := common.UpdateKubeProxyKubeconfig(client, cfg); err != nil {
+func EnsureEdgeKubeConfig(cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig, client clientset.Interface) error {
+	if err := common.UpdateKubeProxyKubeconfig(client, cfg, edgeConf); err != nil {
 		klog.Errorf("Update kube-proxy config, error: %s", err)
 		return err
 	}

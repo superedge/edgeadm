@@ -19,7 +19,6 @@ package common
 import (
 	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	"k8s.io/client-go/kubernetes/fake"
-	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"testing"
 )
 
@@ -58,9 +57,8 @@ func TestEnsureEdgexNamespace(t *testing.T) {
 }
 
 func TestGetSuperEdgeImage(t *testing.T) {
-	cfg := &kubeadmapi.InitConfiguration{}
 	edgeConf := &cmd.EdgeadmConfig{}
-	cfg.ImageRepository = "superedge.tencentcloudcr.com/superedge"
+	edgeConf.EdgeImageRepository = "superedge.tencentcloudcr.com/superedge"
 	edgeConf.Version = "v0.8.0"
-	GetSuperEdgeImage("tunnel", cfg, edgeConf)
+	GetSuperEdgeImage("tunnel", edgeConf)
 }

@@ -21,7 +21,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
-	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 	"os"
 	"path/filepath"
@@ -119,7 +118,7 @@ func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_EDGE)
 
 	// Deploy edge-health
-	if err := DeployEdgeHealth(client, manifestsDir, nil, nil); err != nil {
+	if err := DeployEdgeHealth(client, manifestsDir, nil); err != nil {
 		klog.Errorf("Deploy edge health, error: %s", err)
 		return err
 	}
@@ -522,15 +521,15 @@ func RemoveNamespace(client kubernetes.Interface, namespace string) error {
 	}
 	return nil
 }
-func GetSuperEdgeImage(image string, cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig) (string, error) {
+func GetSuperEdgeImage(image string, edgeConf *cmd.EdgeadmConfig) (string, error) {
 	var version string
 	var imageRepository string
 	var err error
 
-	if cfg == nil || cfg.ImageRepository == "" {
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
 		imageRepository = constant.ImageRepository
 	} else {
-		imageRepository = cfg.ImageRepository
+		imageRepository = edgeConf.EdgeImageRepository
 	}
 	if edgeConf == nil || edgeConf.Version == "" {
 		version = constant.Version
@@ -539,29 +538,40 @@ func GetSuperEdgeImage(image string, cfg *kubeadmapi.InitConfiguration, edgeConf
 	}
 	version, err = kubeadmutil.KubernetesReleaseVersion(version)
 	if err != nil {
+		klog.Errorf("Failed to parse image tag, tag: %v, error: %v", version, err)
 		return "", err
 	}
 	return fmt.Sprintf("%s/%s:%s", imageRepository, image, version), nil
 }
 
-func GetEdgeDnsImage(cfg *kubeadmapi.InitConfiguration) string {
+func GetEdgeDnsImage(edgeConf *cmd.EdgeadmConfig) string {
 	var imageRepository string
-	if cfg == nil || cfg.ImageRepository == "" {
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
 		imageRepository = constant.ImageRepository
 	} else {
-		imageRepository = cfg.ImageRepository
+		imageRepository = edgeConf.EdgeImageRepository
 	}
 
 	return fmt.Sprintf("%s/%s:%s", imageRepository, "coredns", constant.CoreDNSVersion)
 
 }
 
-func GetEdgeFlannel(cfg *kubeadmapi.InitConfiguration) string {
+func GetEdgeFlannel(edgeConf *cmd.EdgeadmConfig) string {
 	var imageRepository string
-	if cfg == nil || cfg.ImageRepository == "" {
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
 		imageRepository = constant.ImageRepository
 	} else {
-		imageRepository = cfg.ImageRepository
+		imageRepository = edgeConf.EdgeImageRepository
 	}
 	return fmt.Sprintf("%s/%s:%s", imageRepository, "flannel", constant.FlannelVersion)
+}
+
+func GetEdgeKubeProxy(edgeConf *cmd.EdgeadmConfig, k8sversion string) string {
+	var imageRepository string
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
+		imageRepository = constant.ImageRepository
+	} else {
+		imageRepository = edgeConf.EdgeImageRepository
+	}
+	return fmt.Sprintf("%s/%s:%s", imageRepository, "kube-proxy", k8sversion)
 }
