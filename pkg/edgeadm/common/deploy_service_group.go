@@ -36,7 +36,7 @@ import (
 )
 
 func DeployServiceGroup(clientSet kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig) error {
-	gridWrapper, gridController, option, err := getServiceGroupResource(clientSet, manifestsDir, cfg, edgeConf)
+	gridWrapper, gridController, option, err := getServiceGroupResource(clientSet, manifestsDir, edgeConf)
 	if err != nil {
 		return err
 	}
@@ -100,18 +100,18 @@ func GetKubeAPIServerAddr(clientSet kubernetes.Interface) (string, error) {
 	return "", errors.New("Get kube-api server addr nil\n")
 }
 
-func getServiceGroupResource(clientSet kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration, edgeCondf *cmd.EdgeadmConfig) (string, string, interface{}, error) {
+func getServiceGroupResource(clientSet kubernetes.Interface, manifestsDir string, edgeConf *cmd.EdgeadmConfig) (string, string, interface{}, error) {
 	advertiseAddress, err := GetKubeAPIServerAddr(clientSet)
 	if err != nil {
 		klog.Errorf("Get Kube-api-server add and port, error: %v", err)
 		return "", "", nil, err
 	}
-	gridwrapper, err := GetSuperEdgeImage("application-grid-wrapper", cfg, edgeCondf)
+	gridwrapper, err := GetSuperEdgeImage("application-grid-wrapper", edgeConf)
 	if err != nil {
 		klog.Errorf("Failed to get application-grid-wrapper, error: %v", err)
 		return "", "", nil, err
 	}
-	gridcontroller, err := GetSuperEdgeImage("application-grid-controller", cfg, edgeCondf)
+	gridcontroller, err := GetSuperEdgeImage("application-grid-controller", edgeConf)
 	if err != nil {
 		klog.Errorf("Failed to get application-grid-controller, error: %v", err)
 		return "", "", nil, err

@@ -27,6 +27,7 @@ func DeployTunnelAddon(kubeconfigFile string, client kubernetes.Interface, manif
 	option := map[string]interface{}{
 		"Namespace":              constant.NamespaceEdgeSystem,
 		"TunnelCoreDNSClusterIP": "",
+		"CoreDnsImage":           GetEdgeDnsImage(nil),
 	}
 	userManifests := filepath.Join(manifestsDir, manifests.APP_TUNNEL_CORDDNS)
 	TunnelCoredns := ReadYaml(userManifests, manifests.TunnelCorednsYaml)
@@ -69,7 +70,7 @@ func DeployTunnelCloud(clientSet kubernetes.Interface, manifestsDir, caCertFile,
 	if err != nil {
 		return err
 	}
-	tunnelImage, err := GetSuperEdgeImage("tunnel", cfg, edgeadmConf)
+	tunnelImage, err := GetSuperEdgeImage("tunnel", edgeadmConf)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func DeployTunnelEdge(clientSet kubernetes.Interface, manifestsDir,
 		return err
 	}
 
-	tunnelImage, err := GetSuperEdgeImage("tunnel", cfg, edgeadmConf)
+	tunnelImage, err := GetSuperEdgeImage("tunnel", edgeadmConf)
 	if err != nil {
 		return err
 	}
@@ -186,6 +187,7 @@ func DeleteTunnelAddon(client kubernetes.Interface, manifestsDir, caCertFile, ca
 	option := map[string]interface{}{
 		"Namespace":              constant.NamespaceEdgeSystem,
 		"TunnelCoreDNSClusterIP": "",
+		"CoreDnsImage":           GetEdgeDnsImage(nil),
 	}
 	userManifests := filepath.Join(manifestsDir, manifests.APP_TUNNEL_CORDDNS)
 	TunnelCoredns := ReadYaml(userManifests, manifests.TunnelCorednsYaml)

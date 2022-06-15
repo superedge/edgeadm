@@ -290,6 +290,10 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 		&edgeConfig.Version, constant.EdgeVersion, constant.Version, "Superedge component version.",
 	)
 
+	flagSet.StringVar(
+		&edgeConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge component version.",
+	)
+
 }
 
 func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {

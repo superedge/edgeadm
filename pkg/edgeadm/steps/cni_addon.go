@@ -76,7 +76,7 @@ func runFlannelAddon(c workflow.RunData) error {
 func EnsureFlannelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	option := map[string]interface{}{
 		"PodNetworkCidr": cfg.Networking.PodSubnet,
-		"FlannelImage":   common.GetEdgeFlannel(cfg),
+		"FlannelImage":   common.GetEdgeFlannel(edgeadmConf),
 	}
 
 	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.KUBE_FLANNEL)

@@ -16,9 +16,9 @@ limitations under the License.
 package common
 
 import (
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	"path/filepath"
 	"time"
 
@@ -31,7 +31,7 @@ import (
 )
 
 // DeployEdgeCorednsAddon installs edge node CoreDNS addon to a Kubernetes cluster
-func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string, cfg *kubeadmapi.InitConfiguration) error {
+func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string, edgeadmConf *cmd.EdgeadmConfig) error {
 
 	if err := EnsureEdgeSystemNamespace(client); err != nil {
 		return err
@@ -40,7 +40,7 @@ func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string, cf
 	// Deploy edge-coredns config
 	option := map[string]interface{}{
 		"Namespace":    constant.NamespaceEdgeSystem,
-		"CoreDnsImage": GetEdgeDnsImage(cfg),
+		"CoreDnsImage": GetEdgeDnsImage(edgeadmConf),
 	}
 	userEdgeCorednsConfig := filepath.Join(manifestsDir, manifests.APPEdgeCorednsConfig)
 	edgeCorednsConfig := ReadYaml(userEdgeCorednsConfig, manifests.EdgeCorednsConfigYaml)
