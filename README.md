@@ -14,6 +14,15 @@
 
 > edgeadm 输出的二进制文件在`output`文件夹下
 
+#### 3. 版本适配列表
+由于 edgeadm 依赖的 kubeadm 和 kubernetes 版本有强依赖关系，请检查您需要的 edgeadm 版本：现阶段 main 主分支支持部署 Kubernetes 1.22 版本；如果需要 1.20 的Kubernetes 版本，请 checkout 到 release-1.20 分支进行编译
+
+|             Branch            | Kubernetes 1.18.2 | Kubernetes 1.20.6 | Kubernetes 1.22.6 |
+|-------------------------------|-------------------|-------------------|-------------------|
+| `release-1.20`                | ✓                 | ✓                 | -                 |
+| `HEAD`                        | -                 | -                 | ✓                 |
+
+
 ### 开始部署
 
 #### 1. 两条指令从零搭建一个边缘集群
@@ -25,7 +34,7 @@ arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && 
 
 -   安装边缘 Kubernetes master 节点
 ```shell
-./edgeadm init --kubernetes-version=1.18.2 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.96.0.0/12 --pod-network-cidr=192.168.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网IP> --apiserver-advertise-address=<Master节点内网IP> --enable-edge=true
+./edgeadm init --kubernetes-version=1.20.6 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.244.0.0/16 --pod-network-cidr=10.233.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点 内网/外网IP> --apiserver-advertise-address=<Master节点内网/外网 IP> --enable-edge=true
 ```
 
 -   Join 边缘节点
