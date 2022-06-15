@@ -10,6 +10,7 @@ const (
 	ContainerRuntime       = "runtime"
 	EdgeVersion            = "edge-version"
 	PodInfraContainerImage = "pod-infra-container-image"
+	EdgeImageRepository    = "edge-image-repository"
 )
 
 const (
