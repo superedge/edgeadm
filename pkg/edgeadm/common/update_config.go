@@ -20,9 +20,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
-	"k8s.io/kubernetes/cmd/kubeadm/app/constants"
-	"k8s.io/kubernetes/cmd/kubeadm/app/images"
 	"net"
 	"strings"
 
@@ -38,7 +37,7 @@ import (
 
 // runCoreDNSAddon installs CoreDNS addon to a Kubernetes cluster
 func UpdateKubeConfig(client kubernetes.Interface) error {
-	if err := UpdateKubeProxyKubeconfig(client, nil); err != nil {
+	if err := UpdateKubeProxyKubeconfig(client, nil, nil); err != nil {
 		klog.Errorf("Update kube-proxy kubeconfig, error: %s", err)
 		return err
 	}
@@ -58,7 +57,7 @@ func UpdateKubeConfig(client kubernetes.Interface) error {
 	return nil
 }
 
-func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface, cfg *kubeadmapi.InitConfiguration) error {
+func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface, cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig) error {
 	kubeProxyCM, err := kubeClient.CoreV1().ConfigMaps(
 		constant.NamespaceKubeSystem).Get(context.TODO(), constant.KubeProxy, metav1.GetOptions{})
 	if err != nil {
@@ -126,8 +125,8 @@ func UpdateKubeProxyKubeconfig(kubeClient kubernetes.Interface, cfg *kubeadmapi.
 		}
 	}
 
-	if cfg != nil {
-		image := images.GetKubernetesImage(constants.KubeProxy, &cfg.ClusterConfiguration)
+	if cfg != nil && cfg.KubernetesVersion != "" {
+		image := GetEdgeKubeProxy(edgeConf, cfg.KubernetesVersion)
 		for k, v := range edgeKubeProxyDS.Spec.Template.Spec.Containers {
 			if v.Name == "kube-proxy" {
 				v.Image = image
