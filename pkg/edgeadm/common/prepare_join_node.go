@@ -19,15 +19,13 @@ package common
 import (
 	"context"
 	"errors"
-	"path/filepath"
-	"time"
-
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	"path/filepath"
 
 	"github.com/superedge/edgeadm/pkg/edgeadm/constant"
 	"github.com/superedge/edgeadm/pkg/edgeadm/constant/manifests"
@@ -35,7 +33,7 @@ import (
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 )
 
-func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, caKeyFile string) error {
+func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, caKeyFile string, egeadmConf *cmd.EdgeadmConfig) error {
 	if err := EnsureEdgeSystemNamespace(clientSet); err != nil {
 		return err
 	}
@@ -94,7 +92,7 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 
 	// Create liteApiServer Crt and liteApiServer Key
 	liteApiServerCrt, liteApiServerKey, err :=
-		GetServiceCert("LiteApiServer", caCertFile, caKeyFile, []string{"127.0.0.1"}, []string{kubeAPIClusterIP})
+		GetServiceCert("LiteApiServer", caCertFile, caKeyFile, []string{"127.0.0.1"}, []string{kubeAPIClusterIP, egeadmConf.EdgeVirtualAddr})
 	if err != nil {
 		return err
 	}
@@ -123,24 +121,6 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 	}
 	tunnelCoreDNSIP := tunnelCoreDNSService.Spec.ClusterIP
 
-	//Get EdgeCoreDNS Service ClusterIP
-	var edgeCoreDNSService *v1.Service
-	err = wait.PollImmediate(time.Second, 5*time.Minute, func() (bool, error) {
-		edgeCoreDNSService, err = clientSet.CoreV1().Services(
-			constant.NamespaceEdgeSystem).Get(context.TODO(), constant.ServiceEdgeCoreDNS+"-svc", metav1.GetOptions{})
-		klog.V(2).Infof("edgeCoreDNSService: %v", edgeCoreDNSService)
-		if err != nil {
-			klog.V(2).Infof("Waiting get edge-coredns service clusterIP, system message: %v", err)
-			return false, nil
-		}
-		return true, nil
-	})
-
-	if edgeCoreDNSService.Spec.ClusterIP == "" {
-		return errors.New("Get edge-coredns service clusterIP nil\n")
-	}
-	edgeCoreDNSIP := edgeCoreDNSService.Spec.ClusterIP
-
 	edgeInfoCM, error := clientSet.CoreV1().ConfigMaps(constant.NamespaceEdgeSystem).
 		Get(context.TODO(), constant.EdgeCertCM, metav1.GetOptions{})
 
@@ -155,9 +135,9 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 				constant.LiteAPIServerCrt:       string(liteApiServerCrt),
 				constant.LiteAPIServerKey:       string(liteApiServerKey),
 				manifests.APP_LITE_APISERVER:    string(yamlLiteAPISerer),
-				constant.EdgeCoreDNSClusterIP:   edgeCoreDNSIP,
 				constant.TunnelCoreDNSClusterIP: tunnelCoreDNSIP,
 				constant.LiteAPIServerTLSJSON:   constant.LiteAPIServerTLSCfg,
+				constant.EdgeVirtualAddr:        egeadmConf.EdgeVirtualAddr,
 			},
 		}
 
@@ -173,10 +153,10 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 	edgeInfoCM.Data[constant.KubeAPIClusterIP] = kubeAPIClusterIP
 	edgeInfoCM.Data[constant.LiteAPIServerCrt] = string(liteApiServerCrt)
 	edgeInfoCM.Data[constant.LiteAPIServerKey] = string(liteApiServerKey)
-	edgeInfoCM.Data[constant.EdgeCoreDNSClusterIP] = edgeCoreDNSIP
 	edgeInfoCM.Data[manifests.APP_LITE_APISERVER] = string(yamlLiteAPISerer)
 	edgeInfoCM.Data[constant.LiteAPIServerTLSJSON] = constant.LiteAPIServerTLSCfg
 	edgeInfoCM.Data[constant.TunnelCoreDNSClusterIP] = tunnelCoreDNSIP
+	edgeInfoCM.Data[constant.EdgeVirtualAddr] = egeadmConf.EdgeVirtualAddr
 	if _, err := clientSet.CoreV1().ConfigMaps(constant.NamespaceEdgeSystem).
 		Update(context.TODO(), edgeInfoCM, metav1.UpdateOptions{}); err != nil {
 		klog.Errorf("Update configMap: %s, error: %v", constant.EdgeCertCM, err)

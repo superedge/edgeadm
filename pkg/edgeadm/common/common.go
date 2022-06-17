@@ -145,7 +145,9 @@ func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	klog.Infof("Update Kubernetes cluster config support marginal autonomy success")
 
 	//Prepare config join Node
-	if err := JoinNodePrepare(client, manifestsDir, caCertFile, caKeyFile); err != nil {
+	edgeadmConf := &cmd.EdgeadmConfig{}
+	edgeadmConf.EdgeVirtualAddr = constant.DefaultEdgeVirtualAddr
+	if err := JoinNodePrepare(client, manifestsDir, caCertFile, caKeyFile, edgeadmConf); err != nil {
 		klog.Errorf("Prepare config join Node error: %s", err)
 		return err
 	}
