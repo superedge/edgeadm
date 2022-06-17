@@ -13,4 +13,5 @@ type EdgeadmConfig struct {
 	Version             string
 	PodInfraContainer   string
 	EdgeImageRepository string
+	EdgeVirtualAddr     string
 }

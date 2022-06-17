@@ -19,34 +19,6 @@ package manifests
 const APP_TUNNEL_EDGE = "tunnel-edge.yaml"
 
 const TunnelEdgeYaml = `
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: tunnel-edge
-rules:
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: tunnel-edge
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: tunnel-edge
-subjects:
-  - kind: ServiceAccount
-    name: tunnel-edge
-    namespace: {{.Namespace}}
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tunnel-edge
-  namespace: {{.Namespace}}
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -81,41 +53,25 @@ metadata:
   name: tunnel-edge-cert
   namespace: {{.Namespace}}
 type: Opaque
-`
-const TunnelEdgeDeploymentGrid = "tunnel-edge-deployment-grid.yaml"
-const TunnelEdgeDeploymentGridYaml = `
-apiVersion: superedge.io/v1
-kind: DeploymentGrid
+---
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
   name: tunnel-edge
   namespace: {{.Namespace}}
 spec:
-  gridUniqKey: superedge.io.hostname
+  selector:
+    matchLabels:
+      app: tunnel-edge
   template:
-    replicas: 1
-    selector:
-      matchLabels:
+    metadata:
+      labels:
         app: tunnel-edge
-    strategy: {}
-    template:
-      metadata:
-        labels:
-          app: tunnel-edge
-      selector:
-        matchLabels:
-          app: tunnel-edge
-      spec:
-        affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-              - matchExpressions:
-                - key: superedge.io/node-edge
-                  operator: In
-                  values:
-                  - enable
-        hostNetwork: true
-        containers:
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        superedge.io/node-edge: enable
+      containers:
         - name: tunnel-edge
           image: {{.TunnelImage}}
           imagePullPolicy: IfNotPresent
@@ -153,31 +109,11 @@ spec:
               mountPath: /etc/superedge/tunnel/certs
             - name: conf
               mountPath: /etc/superedge/tunnel/conf
-        volumes:
-          - secret:
-              secretName: tunnel-edge-cert
-            name: certs
-          - configMap:
-              name: tunnel-edge-conf
-            name: conf
-`
-
-const TunnelEdgeServiceGrid = "edge-coredns-service-grid.yaml"
-
-const TunnelEdgeServiceGridYaml = `
-apiVersion: superedge.io/v1
-kind: ServiceGrid
-metadata:
-  name: tunnel-edge
-  namespace: {{.Namespace}}
-spec:
-  gridUniqKey: superedge.io.hostname
-  template:
-    selector:
-      app: tunnel-edge
-    ports:
-    - name: anp
-      port: 8080
-      targetPort: 51009
-      protocol: TCP
+      volumes:
+        - secret:
+            secretName: tunnel-edge-cert
+          name: certs
+        - configMap:
+            name: tunnel-edge-conf
+          name: conf
 `

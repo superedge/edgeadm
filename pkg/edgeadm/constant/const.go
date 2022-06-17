@@ -49,6 +49,7 @@ const (
 	ServiceTunnelCloud   = "tunnel-cloud"
 	ServiceEdgeCoreDNS   = "edge-coredns"
 	ServiceTunnelCoreDNS = "tunnel-coredns"
+	CorednsDummy         = "tkeedgedns"
 )
 
 const (
@@ -117,7 +118,6 @@ const (
 	KubeAPICACrt           = "kube-api-ca.crt"
 	LiteAPIServerCrt       = "lite-apiserver.crt"
 	LiteAPIServerKey       = "lite-apiserver.key"
-	EdgeCoreDNSClusterIP   = "edge-coredns-cluster-ip"
 	TunnelCoreDNSClusterIP = "tunnel-coredns-cluster-ip"
 )
 
@@ -131,7 +131,6 @@ const (
 )
 
 const (
-	LiteAPIServerAddr    = "https://127.0.0.1:51003"
 	AddonAPIServerDomain = "kubernetes.default"
 )
 

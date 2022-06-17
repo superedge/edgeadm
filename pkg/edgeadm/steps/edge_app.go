@@ -339,7 +339,7 @@ func EnsureNodePrepare(cfg *kubeadmapi.InitConfiguration, egeadmConf *cmd.Edgead
 	// Prepare lite-apiserver config info
 	caKeyFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CAKeyName)
 	caCertFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CACertName)
-	if err := common.JoinNodePrepare(client, egeadmConf.ManifestsDir, caCertFile, caKeyFile); err != nil {
+	if err := common.JoinNodePrepare(client, egeadmConf.ManifestsDir, caCertFile, caKeyFile, egeadmConf); err != nil {
 		klog.Errorf("Prepare Config Join Node, error: %s", err)
 		return err
 	}

@@ -119,42 +119,21 @@ func DeployTunnelEdge(clientSet kubernetes.Interface, manifestsDir,
 		return err
 	}
 
-	err = kubeclient.CreateResourceWithFile(clientSet, tunnelEdgeYaml, option)
-	if err != nil {
-		return err
-	}
-
 	tunnelImage, err := GetSuperEdgeImage("tunnel", edgeadmConf)
 	if err != nil {
 		return err
 	}
-	// Deploy edge-coredns deploymentGrid
-	gridoption := map[string]interface{}{
-		"Namespace":   constant.NamespaceEdgeSystem,
-		"TunnelImage": tunnelImage,
-	}
-
+	// Deploy tunnel-edge
+	option.(map[string]interface{})["TunnelImage"] = tunnelImage
 	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-
-		err = kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, manifests.TunnelEdgeDeploymentGridYaml, gridoption, true)
+		err = kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, tunnelEdgeYaml, option.(map[string]interface{}), true)
 		if err != nil {
 			klog.V(2).Infof("Waiting deploy tunnel-edge DeploymentGrid, system message: %v", err)
 			return false, nil
 		}
 		return true, nil
 	})
-	klog.Infof("Deploy %s success!", manifests.TunnelEdgeDeploymentGrid)
-
-	// Deploy edge-coredns serviceGrid
-	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(clientSet, nil, manifests.TunnelEdgeServiceGridYaml, gridoption, true)
-		if err != nil {
-			klog.V(2).Infof("Waiting deploy tunnel-edge ServiceGrid, system message: %v", err)
-			return false, nil
-		}
-		return true, nil
-	})
-	klog.Infof("Deploy %s success!", manifests.TunnelEdgeServiceGrid)
+	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_EDGE)
 	return nil
 }
 

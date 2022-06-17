@@ -11,6 +11,7 @@ const (
 	EdgeVersion            = "edge-version"
 	PodInfraContainerImage = "pod-infra-container-image"
 	EdgeImageRepository    = "edge-image-repository"
+	EdgeVirtualAddr        = "edge-virtual-addr"
 )
 
 const (
@@ -23,4 +24,5 @@ const (
 
 	DefaultDockerCRISocket     = "/var/run/dockershim.sock"
 	DefaultContainerdCRISocket = "/run/containerd/containerd.sock"
+	DefaultEdgeVirtualAddr     = "169.254.20.11"
 )

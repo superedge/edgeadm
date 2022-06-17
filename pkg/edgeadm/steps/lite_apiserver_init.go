@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/vishvananda/netlink"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -40,6 +41,8 @@ import (
 	"github.com/superedge/edgeadm/pkg/util"
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 )
+
+var liteAddr string
 
 func NewLiteApiServerInitPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 	return workflow.Phase{
@@ -94,7 +97,8 @@ func installLiteAPIServer(c workflow.RunData) error {
 
 	//node kube-api-server addr set lite-api-server addr if deploy lite-api-server success.
 	for _, cluster := range tlsBootstrapCfg.Clusters {
-		cluster.Server = constant.LiteAPIServerAddr
+		cluster.Server = fmt.Sprintf("https://%s:51003", liteAddr)
+
 	}
 	return nil
 }
@@ -146,6 +150,20 @@ func deployLiteAPIServer(kubeClient *kubernetes.Clientset, data phases.JoinData)
 		klog.Errorf("Generate lite-apiserver cert, error: %v", err)
 		return err
 	}
+
+	//dummy
+	dummyIp := net.ParseIP(liteApiServerConfigMap.Data[constant.EdgeVirtualAddr])
+	if dummyIp == nil {
+		return fmt.Errorf("The Edge Node dummy NIC address is not specified")
+	}
+	err = ensureDummy(&netlink.Addr{IPNet: netlink.NewIPNet(dummyIp)})
+	if err != nil {
+		klog.Errorf("Failed to create dummy, error: %v", err)
+		return err
+	}
+
+	liteAddr = dummyIp.String()
+
 	if err := createLiteAPIServerConfig(data); err != nil {
 		klog.Errorf("Create lite-apiserver config, error: %v", err)
 		return err
@@ -209,8 +227,9 @@ func createLiteAPIServerConfig(data phases.JoinData) error {
 		liteAIPServerConfigTemplate = strings.ReplaceAll(liteAIPServerConfigTemplate, "${MASTER_IP}", addr)
 	} else {
 		liteAIPServerConfigTemplate = strings.ReplaceAll(liteAIPServerConfigTemplate, "${MASTER_IP}", constant.AddonAPIServerDomain)
-
 	}
+
+	liteAIPServerConfigTemplate = strings.ReplaceAll(liteAIPServerConfigTemplate, "${ADDRESS}", liteAddr)
 	cmds := []string{
 		fmt.Sprintf(`echo "%s" > %s`, liteAIPServerConfigTemplate, constant.LiteAPIServerConfFile),
 	}
@@ -295,6 +314,31 @@ func addCloudNodeLabel(c workflow.RunData) error {
 
 	if err := kubeclient.AddNodeLabel(clientSet, data.Cfg().NodeRegistration.Name, masterLabel); err != nil {
 		klog.Errorf("Add Cloud Node node label error: %v", err)
+		return err
+	}
+	return nil
+}
+
+func ensureDummy(addr *netlink.Addr) error {
+	//dummy
+	handler := netlink.Handle{}
+	l, err := handler.LinkByName(constant.CorednsDummy)
+	if err == nil {
+		_ = handler.AddrAdd(l, addr)
+		return nil
+	}
+
+	dummy := &netlink.Dummy{
+		LinkAttrs: netlink.LinkAttrs{Name: constant.CorednsDummy},
+	}
+	err = handler.LinkAdd(dummy)
+	if err != nil {
+		return err
+	}
+
+	nl, _ := handler.LinkByName(constant.CorednsDummy)
+	err = handler.AddrAdd(nl, addr)
+	if err != nil {
 		return err
 	}
 	return nil
