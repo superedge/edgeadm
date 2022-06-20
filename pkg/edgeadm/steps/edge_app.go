@@ -299,12 +299,12 @@ func EnsureEdgeKubeConfig(cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.Edgea
 		return err
 	}
 
-	if err := common.UpdateKubernetesEndpoint(client); err != nil {
+	if err := common.UpdateKubernetesEndpoint(client, edgeConf); err != nil {
 		klog.Errorf("Update kubernetes endpoint, error: %s", err)
 		return err
 	}
 
-	if err := common.UpdateKubernetesEndpointSlice(client); err != nil {
+	if err := common.UpdateKubernetesEndpointSlice(client, edgeConf); err != nil {
 		klog.Errorf("Update kubernetes endpointSlice, error: %s", err)
 		return err
 	}

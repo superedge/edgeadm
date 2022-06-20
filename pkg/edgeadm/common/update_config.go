@@ -36,18 +36,18 @@ import (
 )
 
 // runCoreDNSAddon installs CoreDNS addon to a Kubernetes cluster
-func UpdateKubeConfig(client kubernetes.Interface) error {
+func UpdateKubeConfig(client kubernetes.Interface, edgeConf *cmd.EdgeadmConfig) error {
 	if err := UpdateKubeProxyKubeconfig(client, nil, nil); err != nil {
 		klog.Errorf("Update kube-proxy kubeconfig, error: %s", err)
 		return err
 	}
 
-	if err := UpdateKubernetesEndpoint(client); err != nil {
+	if err := UpdateKubernetesEndpoint(client, edgeConf); err != nil {
 		klog.Errorf("Update kubernetes endpoint, error: %s", err)
 		return err
 	}
 
-	if err := UpdateKubernetesEndpointSlice(client); err != nil {
+	if err := UpdateKubernetesEndpointSlice(client, edgeConf); err != nil {
 		klog.Errorf("Update kubernetes endpointSlice, error: %s", err)
 		return err
 	}
@@ -210,7 +210,7 @@ func UpdateClusterInfoKubeconfig(kubeClient kubernetes.Interface, certSANs []str
 	return nil
 }
 
-func UpdateKubernetesEndpoint(clientSet kubernetes.Interface) error {
+func UpdateKubernetesEndpoint(clientSet kubernetes.Interface, edgeConf *cmd.EdgeadmConfig) error {
 	endpoint, err := clientSet.CoreV1().Endpoints(
 		constant.NamespaceDefault).Get(context.TODO(), constant.KubernetesEndpoint, metav1.GetOptions{})
 	if err != nil {
@@ -228,7 +228,7 @@ func UpdateKubernetesEndpoint(clientSet kubernetes.Interface) error {
 
 	annotations := make(map[string]string)
 	annotations[constant.EdgeLocalPort] = "51003"
-	annotations[constant.EdgeLocalHost] = "127.0.0.1"
+	annotations[constant.EdgeLocalHost] = edgeConf.EdgeVirtualAddr
 	endpoint.Annotations = annotations
 	if _, err := clientSet.CoreV1().Endpoints(
 		constant.NamespaceDefault).Update(context.TODO(), endpoint, metav1.UpdateOptions{}); err != nil {
@@ -238,7 +238,7 @@ func UpdateKubernetesEndpoint(clientSet kubernetes.Interface) error {
 	return nil
 }
 
-func UpdateKubernetesEndpointSlice(clientSet kubernetes.Interface) error {
+func UpdateKubernetesEndpointSlice(clientSet kubernetes.Interface, edgeConf *cmd.EdgeadmConfig) error {
 	endpointSlice, err := clientSet.DiscoveryV1beta1().EndpointSlices(
 		constant.NamespaceDefault).Get(context.TODO(), constant.KubernetesEndpoint, metav1.GetOptions{})
 	if err != nil {
@@ -247,7 +247,7 @@ func UpdateKubernetesEndpointSlice(clientSet kubernetes.Interface) error {
 
 	annotations := make(map[string]string)
 	annotations[constant.EdgeLocalPort] = "51003"
-	annotations[constant.EdgeLocalHost] = "127.0.0.1"
+	annotations[constant.EdgeLocalHost] = edgeConf.EdgeVirtualAddr
 	endpointSlice.Annotations = annotations
 	if _, err := clientSet.DiscoveryV1beta1().EndpointSlices(
 		constant.NamespaceDefault).Update(context.TODO(), endpointSlice, metav1.UpdateOptions{}); err != nil {
