@@ -138,7 +138,7 @@ func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	}
 
 	// Update Kube-* Config
-	if err := UpdateKubeConfig(client); err != nil {
+	if err := UpdateKubeConfig(client, nil); err != nil {
 		klog.Errorf("Deploy serivce group, error: %s", err)
 		return err
 	}

@@ -38,9 +38,6 @@ data:
                 [mode.edge.https]
                     cert= "/etc/superedge/tunnel/certs/apiserver-kubelet-client.crt"
                     key=  "/etc/superedge/tunnel/certs/apiserver-kubelet-client.key"
-            [mode.edge.httpproxy]
-                proxyip = "0.0.0.0"
-                proxyport = "51009"
                 
 ---
 apiVersion: v1
