@@ -121,6 +121,7 @@ func getServiceGroupResource(clientSet kubernetes.Interface, manifestsDir string
 		"AdvertiseAddress":    advertiseAddress,
 		"GridWrapperImage":    gridwrapper,
 		"GridControllerImage": gridcontroller,
+		"ADDRESS":             edgeConf.EdgeVirtualAddr,
 	}
 	userGridWrapper := filepath.Join(manifestsDir, manifests.APP_APPLICATION_GRID_WRAPPER)
 	gridWrapper := ReadYaml(userGridWrapper, manifests.ApplicationGridWrapperYaml)

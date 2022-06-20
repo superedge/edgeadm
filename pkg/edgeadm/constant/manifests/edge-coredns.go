@@ -16,9 +16,9 @@ limitations under the License.
 
 package manifests
 
-const APPEdgeCorednsConfig = "edge-coredns-config.yaml"
+const APP_Edge_Coredns = "edge-coredns.yaml"
 
-const EdgeCorednsConfigYaml = `
+const EdgeCorednsYaml = `
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -76,6 +76,7 @@ data:
   Corefile: |
     .:53 {
         errors
+        bind {{.EdgeVirtualAddr}}
         health {
           lameduck 5s
         }
@@ -96,126 +97,84 @@ data:
         reload 2s
         loadbalance
     }
-`
-
-const APPEdgeCorednsDeploymentGrid = "edge-coredns-deployment-grid.yaml"
-
-const EdgeCorednsDeploymentGridYaml = `
-apiVersion: superedge.io/v1
-kind: DeploymentGrid
+---
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
   name: edge-coredns
   namespace: {{.Namespace}}
 spec:
-  gridUniqKey: superedge.io.hostname
-  template:
-    replicas: 1
-    selector:
-      matchLabels:
-        k8s-app: edge-coredns
-    strategy: {}
-    template:
-      metadata:
-        labels:
-          k8s-app: edge-coredns
-      selector:
-        matchLabels:
-          k8s-app: edge-coredns
-      spec:
-        priorityClassName: system-cluster-critical
-        serviceAccountName: edge-coredns
-        tolerations:
-          - key: "CriticalAddonsOnly"
-            operator: "Exists"
-          - key: "node-role.kubernetes.io/master"
-            operator: "Exists"
-            effect: "NoSchedule"
-        containers:
-        - name: coredns
-          image: {{.CoreDnsImage}}
-          imagePullPolicy: IfNotPresent
-          resources:
-            limits:
-              cpu: 50m
-              memory: 100Mi
-            requests:
-              cpu: 10m
-              memory: 20Mi
-          args: [ "-conf", "/etc/coredns/Corefile" ]
-          volumeMounts:
-          - name: config-volume
-            mountPath: /etc/coredns
-            readOnly: true
-          ports:
-          - containerPort: 53
-            name: dns
-            protocol: UDP
-          - containerPort: 53
-            name: dns-tcp
-            protocol: TCP
-          - containerPort: 9153
-            name: metrics
-            protocol: TCP
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              add:
-              - NET_BIND_SERVICE
-              drop:
-              - all
-            readOnlyRootFilesystem: true
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 60
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 5
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8181
-              scheme: HTTP
-        dnsPolicy: Default
-        volumes:
-          - name: config-volume
-            configMap:
-              name: edge-coredns
-              items:
-              - key: Corefile
-                path: Corefile
-`
-
-const APPEdgeCorednsServiceGrid = "edge-coredns-service-grid.yaml"
-
-const EdgeCorednsServiceGridYaml = `
-apiVersion: superedge.io/v1
-kind: ServiceGrid
-metadata:
-  name: edge-coredns
-  namespace: {{.Namespace}}
-  annotations:
-    prometheus.io/port: "9153"
-    prometheus.io/scrape: "true"
-  labels:
-    k8s-app: edge-coredns
-    kubernetes.io/name: "CoreDNS"
-    kubernetes.io/cluster-service: "true"
-spec:
-  gridUniqKey: superedge.io.hostname
-  template:
-    selector:
+  selector:
+    matchLabels:
       k8s-app: edge-coredns
-    ports:
-    - name: dns
-      port: 53
-      protocol: UDP
-    - name: dns-tcp
-      port: 53
-      protocol: TCP
-    - name: metrics
-      port: 9153
-      protocol: TCP
+  template:
+    metadata:
+      labels:
+        k8s-app: edge-coredns
+    spec:
+      containers:
+      - args: [ "-conf", "/etc/coredns/Corefile" ]
+        image: {{.CoreDnsImage}}
+        imagePullPolicy: IfNotPresent
+        name: coredns
+        ports:
+        - containerPort: 53
+          hostPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          hostPort: 53
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: 9153
+          hostPort: 9153
+          name: metrics
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 50m
+            memory: 100Mi
+          requests:
+            cpu: 10m
+            memory: 20Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8181
+            scheme: HTTP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - all
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+          readOnly: true
+      dnsPolicy: Default
+      hostNetwork: true
+      nodeSelector:
+        superedge.io/node-edge: enable
+      priorityClassName: system-cluster-critical
+      restartPolicy: Always
+      serviceAccount: edge-coredns
+      serviceAccountName: edge-coredns
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      volumes:
+      - name: config-volume
+        configMap:
+          name: edge-coredns
+          items:
+          - key: Corefile
+            path: Corefile
 `

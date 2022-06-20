@@ -157,17 +157,17 @@ func prepareJoinEdgeNode(kubeClient *kubernetes.Clientset, data phases.JoinData,
 		klog.Errorf("Get configMap: %s, error: %v", constant.EdgeCertCM, err)
 		return err
 	}
-	edgeCoreDNSClusterIP, ok := edgeInfoConfigMap.Data[constant.EdgeCoreDNSClusterIP]
+	edgeCoreDNSIP, ok := edgeInfoConfigMap.Data[constant.EdgeVirtualAddr]
 	if !ok {
 		return fmt.Errorf("Get lite-apiserver configMap %s value nil\n", constant.LiteAPIServerTLSJSON)
 	}
-	edgeCoreDNSClusterIP = strings.Replace(edgeCoreDNSClusterIP, "\n", "", -1)
+	edgeCoreDNSIP = strings.Replace(edgeCoreDNSIP, "\n", "", -1)
 
 	if joinCfg.NodeRegistration.KubeletExtraArgs == nil {
 		joinCfg.NodeRegistration.KubeletExtraArgs = make(map[string]string)
 	}
-	joinCfg.NodeRegistration.KubeletExtraArgs["cluster-dns"] = edgeCoreDNSClusterIP
-	klog.V(4).Infof("Get edge-coredns clusterIP %s", edgeCoreDNSClusterIP)
+	joinCfg.NodeRegistration.KubeletExtraArgs["cluster-dns"] = edgeCoreDNSIP
+	klog.V(4).Infof("Get edge-coredns clusterIP %s", edgeCoreDNSIP)
 
 	// Splicing node delay domain config
 	delayDomainHostConfig := ""

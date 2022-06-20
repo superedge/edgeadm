@@ -169,13 +169,15 @@ func CreateOrDeleteResourceWithFile(client kubernetes.Interface, dynamicClient d
 				} else {
 					result = client.Discovery().RESTClient().Post().SpecificallyVersionedParams(&metav1.CreateOptions{}, scheme.ParameterCodec, groupVersion).AbsPath(strings.Join(url, "/")).Resource(mapping.Resource.Resource).Body(outBytes).Do(context.Background())
 					//存在则更新
-					if apierrors.IsAlreadyExists(result.Error()) {
-						result = client.Discovery().RESTClient().Put().SpecificallyVersionedParams(&metav1.CreateOptions{}, scheme.ParameterCodec, groupVersion).AbsPath(strings.Join(url, "/")).Resource(mapping.Resource.Resource).Name(unstructuredObj.GetName()).Body(outBytes).Do(context.Background())
-						if result.Error() != nil {
+					if result.Error() != nil {
+						if apierrors.IsAlreadyExists(result.Error()) {
+							result = client.Discovery().RESTClient().Put().SpecificallyVersionedParams(&metav1.CreateOptions{}, scheme.ParameterCodec, groupVersion).AbsPath(strings.Join(url, "/")).Resource(mapping.Resource.Resource).Name(unstructuredObj.GetName()).Body(outBytes).Do(context.Background())
+							if result.Error() != nil {
+								return result.Error()
+							}
+						} else {
 							return result.Error()
 						}
-					} else {
-						return result.Error()
 					}
 				}
 			} else {

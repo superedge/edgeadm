@@ -39,40 +39,20 @@ func DeployEdgeCorednsAddon(client kubernetes.Interface, manifestsDir string, ed
 
 	// Deploy edge-coredns config
 	option := map[string]interface{}{
-		"Namespace":    constant.NamespaceEdgeSystem,
-		"CoreDnsImage": GetEdgeDnsImage(edgeadmConf),
+		"Namespace":       constant.NamespaceEdgeSystem,
+		"CoreDnsImage":    GetEdgeDnsImage(edgeadmConf),
+		"EdgeVirtualAddr": edgeadmConf.EdgeVirtualAddr,
 	}
-	userEdgeCorednsConfig := filepath.Join(manifestsDir, manifests.APPEdgeCorednsConfig)
-	edgeCorednsConfig := ReadYaml(userEdgeCorednsConfig, manifests.EdgeCorednsConfigYaml)
-	// Waiting DeploymentGrid apply success
-	err := kubeclient.CreateResourceWithFile(client, edgeCorednsConfig, option)
+	userEdgeCorednsConfig := filepath.Join(manifestsDir, manifests.APP_Edge_Coredns)
+	edgeCorednsConfig := ReadYaml(userEdgeCorednsConfig, manifests.EdgeCorednsYaml)
+
+	// Deploy edge-coredns
+	err := kubeclient.CreateOrDeleteResourceWithFile(client, nil, edgeCorednsConfig, option, true)
 	if err != nil {
-		klog.Errorf("Deploy edge-coredns config error: %v", err)
+		klog.Errorf("Waiting deploy edge-coredns ds, system message: %v", err)
 		return err
 	}
-
-	// Deploy edge-coredns deploymentGrid
-	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(client, nil, manifests.EdgeCorednsDeploymentGridYaml, option, true)
-		if err != nil {
-			klog.V(2).Infof("Waiting deploy edge-coredns DeploymentGrid, system message: %v", err)
-			return false, nil
-		}
-		return true, nil
-	})
-	klog.Infof("Deploy %s success!", manifests.APPEdgeCorednsDeploymentGrid)
-
-	// Deploy edge-coredns serviceGrid
-	err = wait.PollImmediate(3*time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(client, nil, manifests.EdgeCorednsServiceGridYaml, option, true)
-		if err != nil {
-			klog.V(2).Infof("Waiting deploy edge-coredns ServiceGrid, system message: %v", err)
-			return false, nil
-		}
-		return true, nil
-	})
-	klog.Infof("Deploy %s success!", manifests.APPEdgeCorednsServiceGrid)
-
+	klog.Infof("Deploy %s success!", manifests.APP_Edge_Coredns)
 	return err
 }
 
@@ -91,14 +71,6 @@ func DeleteEdgeCoredns(kubeconfigFile string, manifestsDir string) error {
 	option := map[string]interface{}{
 		"Namespace": constant.NamespaceEdgeSystem,
 	}
-	userEdgeCorednsConfig := filepath.Join(manifestsDir, manifests.APPEdgeCorednsConfig)
-	edgeCorednsConfig := ReadYaml(userEdgeCorednsConfig, manifests.EdgeCorednsConfigYaml)
-	// Waiting DeploymentGrid apply success
-	err = kubeclient.DeleteResourceWithFile(client, edgeCorednsConfig, option)
-	if err != nil {
-		klog.Errorf("Deploy edge-coredns config error: %v", err)
-		return err
-	}
 
 	restCfg, err := clientcmd.BuildConfigFromFlags("", kubeconfigFile)
 
@@ -115,25 +87,14 @@ func DeleteEdgeCoredns(kubeconfigFile string, manifestsDir string) error {
 
 	// Delete edge-coredns deploymentGrid
 	err = wait.PollImmediate(time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.EdgeCorednsDeploymentGridYaml, option, false)
+		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.EdgeCorednsYaml, option, false)
 		if err != nil {
 			klog.Warningf("Waiting deploy edge-coredns DeploymentGrid, system message: %v", err)
 			return false, nil
 		}
 		return true, nil
 	})
-	klog.Infof("Delete %s success!", manifests.APPEdgeCorednsDeploymentGrid)
-
-	// Delete edge-coredns serviceGrid
-	err = wait.PollImmediate(time.Second, 5*time.Minute, func() (bool, error) {
-		err = kubeclient.CreateOrDeleteResourceWithFile(kubeClient, dynamicClient, manifests.EdgeCorednsServiceGridYaml, option, false)
-		if err != nil {
-			klog.Warningf("Waiting deploy edge-coredns ServiceGrid, system message: %v", err)
-			return false, nil
-		}
-		return true, nil
-	})
-	klog.Infof("Delete %s success!", manifests.APPEdgeCorednsServiceGrid)
+	klog.Infof("Delete %s success!", manifests.APP_Edge_Coredns)
 
 	return nil
 }
