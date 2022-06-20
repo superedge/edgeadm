@@ -299,12 +299,12 @@ func EnsureEdgeKubeConfig(cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.Edgea
 		return err
 	}
 
-	if err := common.UpdateKubernetesEndpoint(client); err != nil {
+	if err := common.UpdateKubernetesEndpoint(client, edgeConf); err != nil {
 		klog.Errorf("Update kubernetes endpoint, error: %s", err)
 		return err
 	}
 
-	if err := common.UpdateKubernetesEndpointSlice(client); err != nil {
+	if err := common.UpdateKubernetesEndpointSlice(client, edgeConf); err != nil {
 		klog.Errorf("Update kubernetes endpointSlice, error: %s", err)
 		return err
 	}
@@ -339,7 +339,7 @@ func EnsureNodePrepare(cfg *kubeadmapi.InitConfiguration, egeadmConf *cmd.Edgead
 	// Prepare lite-apiserver config info
 	caKeyFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CAKeyName)
 	caCertFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CACertName)
-	if err := common.JoinNodePrepare(client, egeadmConf.ManifestsDir, caCertFile, caKeyFile); err != nil {
+	if err := common.JoinNodePrepare(client, egeadmConf.ManifestsDir, caCertFile, caKeyFile, egeadmConf); err != nil {
 		klog.Errorf("Prepare Config Join Node, error: %s", err)
 		return err
 	}

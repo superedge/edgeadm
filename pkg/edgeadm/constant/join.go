@@ -18,6 +18,7 @@ ExecStart=/usr/bin/lite-apiserver \
 --kube-apiserver-url=${MASTER_IP} \
 --kube-apiserver-port=${MASTER_PORT} \
 --port=51003 \
+--address=${ADDRESS} \
 --tls-config-file=/etc/kubernetes/edge/tls.json \
 --file-cache-path=/data/lite-apiserver/cache \
 --sync-duration=120 \
