@@ -102,7 +102,7 @@ func DeployEdgex(client *kubernetes.Clientset, manifestsDir string, modules []bo
 	return nil
 }
 
-func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKeyFile, masterPublicAddr string, certSANs []string, configPath string) error {
+func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKeyFile, masterPublicAddr string, certSANs []string, configPath string, edgeadmConf *cmd.EdgeadmConfig) error {
 	if err := EnsureEdgeSystemNamespace(client); err != nil {
 		return err
 	}
@@ -118,35 +118,33 @@ func DeployEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_EDGE)
 
 	// Deploy edge-health
-	if err := DeployEdgeHealth(client, manifestsDir, nil); err != nil {
+	if err := DeployEdgeHealth(client, manifestsDir, edgeadmConf); err != nil {
 		klog.Errorf("Deploy edge health, error: %s", err)
 		return err
 	}
 	klog.Infof("Deploy edge-health success!")
 
 	// Deploy service-group
-	if err := DeployServiceGroup(client, manifestsDir, nil, nil); err != nil {
+	if err := DeployServiceGroup(client, manifestsDir, nil, edgeadmConf); err != nil {
 		klog.Errorf("Deploy serivce group, error: %s", err)
 		return err
 	}
 	klog.Infof("Deploy service-group success!")
 
 	// Deploy edge-coredns
-	if err := DeployEdgeCorednsAddon(client, manifestsDir, nil); err != nil {
+	if err := DeployEdgeCorednsAddon(client, manifestsDir, edgeadmConf); err != nil {
 		klog.Errorf("Deploy edge-coredns error: %v", err)
 		return err
 	}
 
 	// Update Kube-* Config
-	if err := UpdateKubeConfig(client, nil); err != nil {
+	if err := UpdateKubeConfig(client, edgeadmConf); err != nil {
 		klog.Errorf("Deploy serivce group, error: %s", err)
 		return err
 	}
 	klog.Infof("Update Kubernetes cluster config support marginal autonomy success")
 
 	//Prepare config join Node
-	edgeadmConf := &cmd.EdgeadmConfig{}
-	edgeadmConf.EdgeVirtualAddr = constant.DefaultEdgeVirtualAddr
 	if err := JoinNodePrepare(client, manifestsDir, caCertFile, caKeyFile, edgeadmConf); err != nil {
 		klog.Errorf("Prepare config join Node error: %s", err)
 		return err
