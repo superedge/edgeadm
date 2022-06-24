@@ -2,6 +2,7 @@ package addon
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	"k8s.io/klog/v2"
 
 	"github.com/superedge/edgeadm/pkg/edgeadm/common"
@@ -10,7 +11,9 @@ import (
 )
 
 func NewInstallEdgeAppsCMD() *cobra.Command {
-	action := addonAction{}
+	action := addonAction{
+		edgeadmConfig: &cmd.EdgeadmConfig{},
+	}
 	cmd := &cobra.Command{
 		Use:   "edge-apps",
 		Short: "Addon edge apps to Kubernetes cluster",
@@ -39,6 +42,17 @@ func NewInstallEdgeAppsCMD() *cobra.Command {
 		"The public IP for control plane")
 	cmd.Flags().StringArrayVar(&action.certSANs, "certSANs", []string{""},
 		"The cert SAN")
+	cmd.Flags().StringVar(
+		&action.edgeadmConfig.Version, constant.EdgeVersion, constant.Version, "Superedge realted images' version.",
+	)
+
+	cmd.Flags().StringVar(
+		&action.edgeadmConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+	)
+
+	cmd.Flags().StringVar(
+		&action.edgeadmConfig.EdgeVirtualAddr, constant.EdgeVirtualAddr, constant.DefaultEdgeVirtualAddr, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+	)
 	return cmd
 }
 
@@ -78,7 +92,7 @@ func NewDetachEdgeAppsCMD() *cobra.Command {
 
 func (a *addonAction) runAddon() error {
 	klog.Info("Start install addon apps to your original cluster")
-	return common.DeployEdgeAPPS(a.clientSet, a.manifestDir, a.caCertFile, a.caKeyFile, a.masterPublicAddr, a.certSANs, a.kubeConfig)
+	return common.DeployEdgeAPPS(a.clientSet, a.manifestDir, a.caCertFile, a.caKeyFile, a.masterPublicAddr, a.certSANs, a.kubeConfig, a.edgeadmConfig)
 }
 
 func (a *addonAction) runDetach() error {

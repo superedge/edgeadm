@@ -243,11 +243,11 @@ func NewInitCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 	// initialize the workflow runner with the list of phases
 	initRunner.AppendPhase(phases.NewPreflightPhase())
 	initRunner.AppendPhase(phases.NewCertsPhase())
-	initRunner.AppendPhase(NewEdgeCertsPhase())
+	initRunner.AppendPhase(NewEdgeCertsPhase(edgeConfig))
 	initRunner.AppendPhase(phases.NewKubeConfigPhase())
 	initRunner.AppendPhase(phases.NewKubeletStartPhase())
 	initRunner.AppendPhase(steps.NewKubeVIPInitPhase(edgeConfig))
-	initRunner.AppendPhase(NewEdgeConfPhase())
+	initRunner.AppendPhase(NewEdgeConfPhase(edgeConfig))
 	initRunner.AppendPhase(phases.NewControlPlanePhase())
 	initRunner.AppendPhase(phases.NewEtcdPhase())
 	initRunner.AppendPhase(phases.NewWaitControlPlanePhase())
@@ -321,12 +321,9 @@ func initInstallHAFlag(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 func edgeadmConfigUpdate(initOptions *initOptions, edgeadmConfig *cmd.EdgeadmConfig) error {
 	// edgeadm default value
 	initOptions.externalClusterCfg.APIServer.ExtraArgs = map[string]string{
-		"kubelet-preferred-address-types":  "Hostname",
-		"service-account-issuer":           "https://kubernetes.default",
-		"service-account-key-file":         "/etc/kubernetes/pki/sa.pub",
-		"service-account-signing-key-file": "/etc/kubernetes/pki/sa.key",
-		"egress-selector-config-file":      "/etc/kubernetes/kube-apiserver-conf/egress-selector-configuration.yaml",
-		"enable-aggregator-routing":        "true",
+		"kubelet-preferred-address-types": "Hostname",
+		"egress-selector-config-file":     "/etc/kubernetes/kube-apiserver-conf/egress-selector-configuration.yaml",
+		"enable-aggregator-routing":       "true",
 	}
 	initOptions.externalClusterCfg.APIServer.ExtraVolumes = []kubeadmapiv1beta2.HostPathMount{
 		{

@@ -18,6 +18,7 @@ package addon
 
 import (
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -31,6 +32,7 @@ import (
 )
 
 type addonAction struct {
+	edgeadmConfig    *cmd.EdgeadmConfig
 	clientSet        *kubernetes.Clientset
 	flags            *pflag.FlagSet
 	manifestDir      string

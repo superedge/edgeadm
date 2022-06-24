@@ -15,6 +15,7 @@ package kubeadm
 
 import (
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	certsphase "k8s.io/kubernetes/cmd/kubeadm/app/phases/certs"
 	"strings"
 
@@ -51,13 +52,16 @@ var (
 )
 
 // NewCertsPhase returns the phase for the certs
-func NewEdgeCertsPhase() workflow.Phase {
+func NewEdgeCertsPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 	return workflow.Phase{
 		Name:   "certs",
 		Short:  "Certificate generation",
 		Phases: newEdgeCertSubPhases(),
-		Run:    runCerts,
-		Long:   cmdutil.MacroCommandLongDescription,
+		RunIf: func(data workflow.RunData) (bool, error) {
+			return config.IsEnableEdge, nil
+		},
+		Run:  runCerts,
+		Long: cmdutil.MacroCommandLongDescription,
 	}
 }
 
