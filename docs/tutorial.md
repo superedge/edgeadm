@@ -12,8 +12,9 @@
 
 - Revert edge Kubernetes cluster to normal Kubernetes cluster: `edgeadm revert --kubeconfig admin.kubeconfig`
 
-- [**More on edgeadm**](./install_via_edgeadm.md)
+- [**More on edgeadm**](./installation/install_via_edgeadm.md)
 
 ### Manual installation
 
-- [**Manual installation**](./install_manually.md)
+- [**Manual installation**](./installation/install_manually.md)
+
