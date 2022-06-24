@@ -15,11 +15,12 @@
 > edgeadm 输出的二进制文件在`output`文件夹下
 
 #### 3. 版本适配列表
-由于 edgeadm 依赖的 kubeadm 和 kubernetes 版本有强依赖关系，请检查您需要的 edgeadm 版本：现阶段 main 主分支支持部署 Kubernetes 1.22 版本；如果需要部署更低版本的Kubernetes ，请 checkout 到对应的分支进行编译
+由于 edgeadm 依赖的 kubeadm 和 kubernetes 版本有强依赖关系，请检查您需要的 edgeadm 版本：现阶段 main 主分支支持部署 Kubernetes 1.22 版本；如果需要部署更低版本的Kubernetes ，请 checkout 到对应的分支进行编译，括号中的内容表示需要使用对应版本的静态tar.gz压缩包
 
 | Branch         | Kubernetes 1.18.2 | Kubernetes 1.20.6 | Kubernetes 1.22.6 |
 | -------------- | ----------------- | ----------------- | ----------------- |
-| `release-1.20` | ✓(v0.7.0)         | ✓(v0.7.0)         | -                 |
+| `release-1.18` | ✓(v0.7.0)         | -                 | -                 |
+| `release-1.20` | -                 | ✓(v0.7.0)         | -                 |
 | `HEAD`         | -                 | -                 | ✓(v0.8.0)         |
 
 
