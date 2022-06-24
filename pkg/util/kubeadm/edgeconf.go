@@ -14,6 +14,7 @@ limitations under the License.
 package kubeadm
 
 import (
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	"io/ioutil"
 	"k8s.io/klog/v2"
 	"k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/workflow"
@@ -42,7 +43,7 @@ egressSelections:
 )
 
 // NewCertsPhase returns the phase for the certs
-func NewEdgeConfPhase() workflow.Phase {
+func NewEdgeConfPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 	return workflow.Phase{
 		Name:  "edge-config",
 		Short: "Config generation",
@@ -50,6 +51,9 @@ func NewEdgeConfPhase() workflow.Phase {
 			{
 				Name:  "ingress-config",
 				Short: "IngressSelector Config generation",
+				RunIf: func(data workflow.RunData) (bool, error) {
+					return config.IsEnableEdge, nil
+				},
 				Run: func(data workflow.RunData) error {
 					if err := os.MkdirAll(filepath.Dir(IngressYamlPath), os.FileMode(0755)); err != nil {
 						klog.Errorf("Failed create % path, error:%v", IngressYamlPath, err)
