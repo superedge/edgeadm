@@ -295,7 +295,7 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 	)
 
 	flagSet.StringVar(
-		&edgeConfig.EdgeVirtualAddr, constant.EdgeVirtualAddr, constant.DefaultEdgeVirtualAddr, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+		&edgeConfig.EdgeVirtualAddr, constant.EdgeVirtualAddr, constant.DefaultEdgeVirtualAddr, "Lite-apiserver listen address which is also used for coredns at edge node.",
 	)
 
 }
