@@ -1,7 +1,6 @@
 package constant
 
 const (
-	KubeConfigPath        = "/root/.kube/config"
 	LiteAPIServerConfFile = SystemServiceDir + "lite-apiserver.service"
 )
 
@@ -11,6 +10,7 @@ Description=lite-apiserver
 
 [Service]
 Environment=QCLOUD_NORM_URL=
+ExecStartPre=-/bin/bash -c "ip link add tkeedgedns type dummy; ip addr add ${ADDRESS} dev tkeedgedns"
 ExecStart=/usr/bin/lite-apiserver \
 --ca-file=/etc/kubernetes/pki/lite-apiserver-ca.crt \
 --tls-cert-file=/etc/kubernetes/edge/lite-apiserver.crt \
