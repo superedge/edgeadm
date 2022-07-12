@@ -26,7 +26,6 @@ import (
 
 	"github.com/superedge/edgeadm/pkg/edgeadm/constant"
 	"github.com/superedge/edgeadm/pkg/util"
-	"github.com/vishvananda/netlink"
 )
 
 func NewCleanupLiteApiServerPhase() workflow.Phase {
@@ -55,7 +54,6 @@ func runCleanupLiteAPIServer(c workflow.RunData) error {
 	}
 	resetHostsFile()
 	resetConfigDir(constant.KubeEdgePath, constant.LiteAPIServerCACertPath)
-	err = resetDummy()
 	return err
 }
 
@@ -79,16 +77,6 @@ func resetHostsFile() error {
 	klog.V(1).Infof("[reset] Resetting file: %s\n", constant.HostsFilePath)
 	if _, _, err := util.RunLinuxCommand(constant.ResetDNSCmd); err != nil {
 		klog.Errorf("[reset] Failed to reset file: %s error: %v\n", constant.ResetDNSCmd, err)
-		return err
-	}
-	return nil
-}
-
-func resetDummy() error {
-	handle := &netlink.Handle{}
-	l, err := handle.LinkByName(constant.CorednsDummy)
-	if err == nil {
-		err = handle.LinkDel(l)
 		return err
 	}
 	return nil
