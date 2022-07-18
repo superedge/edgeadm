@@ -32,7 +32,7 @@ data:
                 [mode.edge.stream.client]
                     token = "{{.TunnelCloudEdgeToken}}"
                     cert = "/etc/superedge/tunnel/certs/cluster-ca.crt"
-                    dns = "tunnel.cloud.io"
+                    dns = "127.0.0.1"
                     servername = "{{.MasterIP}}:{{.TunnelPersistentConnectionPort}}"
                     logport = 51010
                 [mode.edge.https]
