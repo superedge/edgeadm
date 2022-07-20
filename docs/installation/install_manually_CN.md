@@ -4,7 +4,7 @@
   - [1.1 部署Tunnel Coredns](#11-%E9%83%A8%E7%BD%B2tunnel-coredns)
   - [1.2 部署Tunnel Cloud](#12-%E9%83%A8%E7%BD%B2tunnel-cloud)
     - [1.2.1 需要补全的参数](#121-%E9%9C%80%E8%A6%81%E8%A1%A5%E5%85%A8%E7%9A%84%E5%8F%82%E6%95%B0)
-    - [1.2.2 TunnelPersistentConnnectionServerKey和TunnelPersistentConnnectionServerCrt的生成举例](#122-tunnelpersistentconnnectionserverkey%E5%92%8Ctunnelpersistentconnnectionservercrt%E7%9A%84%E7%94%9F%E6%88%90%E4%B8%BE%E4%BE%8B)
+    - [1.2.2 TunnelPersistentConnectionServerKey和TunnelPersistentConnectionServerCrt的生成举例](#122-tunnelpersistentconnectionserverkey%E5%92%8Ctunnelpersistentconnectionservercrt%E7%9A%84%E7%94%9F%E6%88%90%E4%B8%BE%E4%BE%8B)
     - [1.2.3 TunnelProxyServerKey和TunnelProxyServerCrt的生成举例](#123-tunnelproxyserverkey%E5%92%8Ctunnelproxyservercrt%E7%9A%84%E7%94%9F%E6%88%90%E4%B8%BE%E4%BE%8B)
   - [1.3 Kube-apiserver使用Tunnel隧道](#13-kube-apiserver%E4%BD%BF%E7%94%A8tunnel%E9%9A%A7%E9%81%93)
   - [1.4 部署Tunnel Edge](#14-%E9%83%A8%E7%BD%B2tunnel-edge)
@@ -48,7 +48,7 @@ $ kubectl apply -f deployment/tunnel-coredns.yaml
 $ kubectl apply -f deployment/tunnel-cloud.yaml
 `````
 
-#### 1.2.2 TunnelPersistentConnnectionServerKey和TunnelPersistentConnnectionServerCrt的生成举例
+#### 1.2.2 TunnelPersistentConnectionServerKey和TunnelPersistentConnectionServerCrt的生成举例
 
 -   生成tunnel的CA
 
@@ -124,7 +124,7 @@ tunnel-coredns   ClusterIP   10.10.47.74   <none>        53/UDP,53/TCP,9153/TCP 
 ...
 dnsConfig:
     nameservers:
-    - 10.10.47.74 #修改为tunnel-cloud的CLUSTER-IP；  
+    - 10.10.47.74 #修改为tunnel-coredns的CLUSTER-IP；  
 ...
 ```
 
