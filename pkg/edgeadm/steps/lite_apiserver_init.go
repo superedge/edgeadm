@@ -26,7 +26,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/vishvananda/netlink"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -156,7 +155,6 @@ func deployLiteAPIServer(kubeClient *kubernetes.Clientset, data phases.JoinData)
 	if dummyIp == nil {
 		return fmt.Errorf("The Edge Node dummy NIC address is not specified")
 	}
-	err = ensureDummy(&netlink.Addr{IPNet: netlink.NewIPNet(dummyIp)})
 	if err != nil {
 		klog.Errorf("Failed to create dummy, error: %v", err)
 		return err
@@ -314,31 +312,6 @@ func addCloudNodeLabel(c workflow.RunData) error {
 
 	if err := kubeclient.AddNodeLabel(clientSet, data.Cfg().NodeRegistration.Name, masterLabel); err != nil {
 		klog.Errorf("Add Cloud Node node label error: %v", err)
-		return err
-	}
-	return nil
-}
-
-func ensureDummy(addr *netlink.Addr) error {
-	//dummy
-	handler := netlink.Handle{}
-	l, err := handler.LinkByName(constant.CorednsDummy)
-	if err == nil {
-		_ = handler.AddrAdd(l, addr)
-		return nil
-	}
-
-	dummy := &netlink.Dummy{
-		LinkAttrs: netlink.LinkAttrs{Name: constant.CorednsDummy},
-	}
-	err = handler.LinkAdd(dummy)
-	if err != nil {
-		return err
-	}
-
-	nl, _ := handler.LinkByName(constant.CorednsDummy)
-	err = handler.AddrAdd(nl, addr)
-	if err != nil {
 		return err
 	}
 	return nil
