@@ -19,15 +19,16 @@ package kubeadm
 
 import (
 	"fmt"
-	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 	"io"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 	"net"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/superedge/edgeadm/pkg/util/kubeclient"
+	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
@@ -219,6 +220,8 @@ func NewInitCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 			initOptions.externalInitCfg.NodeRegistration.CRISocket = constant.DefaultDockerCRISocket
 		case constant.ContainerRuntimeContainerd:
 			initOptions.externalInitCfg.NodeRegistration.CRISocket = constant.DefaultContainerdCRISocket
+		case constant.ContainerRuntimeNone:
+			initOptions.externalInitCfg.NodeRegistration.CRISocket = constant.DefaultDockerCRISocket
 		default:
 			return fmt.Errorf("Container runtime support 'docker' and 'containerd', not %s\n", edgeConfig.ContainerRuntime)
 		}
