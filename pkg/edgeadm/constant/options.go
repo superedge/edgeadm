@@ -21,6 +21,7 @@ const (
 	HANetworkDefaultInterface  = "eth0"
 	ContainerRuntimeDocker     = "docker"
 	ContainerRuntimeContainerd = "containerd"
+	ContainerRuntimeNone       = "none"
 
 	DefaultDockerCRISocket     = "/var/run/dockershim.sock"
 	DefaultContainerdCRISocket = "/run/containerd/containerd.sock"

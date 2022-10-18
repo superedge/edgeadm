@@ -54,6 +54,9 @@ func installContainer(c workflow.RunData) error {
 		if err := installContainerd(); err != nil {
 			return err
 		}
+	case constant.ContainerRuntimeNone:
+		//nothing todo
+		klog.Infof("Ignore the runtime")
 	}
 	klog.Infof("Installed container runtime %s successfully", EdgeadmConf.ContainerRuntime)
 
