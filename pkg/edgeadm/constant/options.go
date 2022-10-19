@@ -12,6 +12,7 @@ const (
 	PodInfraContainerImage = "pod-infra-container-image"
 	EdgeImageRepository    = "edge-image-repository"
 	EdgeVirtualAddr        = "edge-virtual-addr"
+	IgnoreRuntime          = "ignore-runtime"
 )
 
 const (

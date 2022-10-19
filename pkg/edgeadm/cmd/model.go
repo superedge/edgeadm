@@ -14,4 +14,5 @@ type EdgeadmConfig struct {
 	PodInfraContainer   string
 	EdgeImageRepository string
 	EdgeVirtualAddr     string
+	IgnoreRuntime       bool
 }
