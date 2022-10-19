@@ -19,15 +19,16 @@ package kubeadm
 
 import (
 	"fmt"
-	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 	"io"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 	"net"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/superedge/edgeadm/pkg/util/kubeclient"
+	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
@@ -304,6 +305,11 @@ func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmCon
 	flagSet.StringVar(
 		&edgeConfig.ContainerRuntime, constant.ContainerRuntime,
 		constant.ContainerRuntimeContainerd, "Container runtime support docker and containerd.",
+	)
+
+	flagSet.BoolVar(
+		&edgeConfig.IgnoreRuntime, constant.IgnoreRuntime,
+		false, "If execute runtime installation, default false.",
 	)
 }
 
