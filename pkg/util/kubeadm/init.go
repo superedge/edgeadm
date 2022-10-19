@@ -220,8 +220,6 @@ func NewInitCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 			initOptions.externalInitCfg.NodeRegistration.CRISocket = constant.DefaultDockerCRISocket
 		case constant.ContainerRuntimeContainerd:
 			initOptions.externalInitCfg.NodeRegistration.CRISocket = constant.DefaultContainerdCRISocket
-		case constant.ContainerRuntimeNone:
-			initOptions.externalInitCfg.NodeRegistration.CRISocket = constant.DefaultDockerCRISocket
 		default:
 			return fmt.Errorf("Container runtime support 'docker' and 'containerd', not %s\n", edgeConfig.ContainerRuntime)
 		}
@@ -307,6 +305,11 @@ func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmCon
 	flagSet.StringVar(
 		&edgeConfig.ContainerRuntime, constant.ContainerRuntime,
 		constant.ContainerRuntimeContainerd, "Container runtime support docker and containerd.",
+	)
+
+	flagSet.BoolVar(
+		&edgeConfig.IgnoreRuntime, constant.IgnoreRuntime,
+		false, "If execute runtime installation, default false.",
 	)
 }
 

@@ -12,6 +12,7 @@ const (
 	PodInfraContainerImage = "pod-infra-container-image"
 	EdgeImageRepository    = "edge-image-repository"
 	EdgeVirtualAddr        = "edge-virtual-addr"
+	IgnoreRuntime          = "ignore-runtime"
 )
 
 const (
@@ -21,7 +22,6 @@ const (
 	HANetworkDefaultInterface  = "eth0"
 	ContainerRuntimeDocker     = "docker"
 	ContainerRuntimeContainerd = "containerd"
-	ContainerRuntimeNone       = "none"
 
 	DefaultDockerCRISocket     = "/var/run/dockershim.sock"
 	DefaultContainerdCRISocket = "/run/containerd/containerd.sock"
