@@ -135,6 +135,15 @@ spec:
         effect: NoSchedule
       serviceAccountName: flannel
       initContainers:
+      - image: {{.InitCniImage}}
+        imagePullPolicy: IfNotPresent
+        name: install-cni-plugins
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /host/opt/cni/bin
+          name: cni-bin-dir
       - name: install-cni
         image: {{.FlannelImage}}
         command:
@@ -188,6 +197,10 @@ spec:
       - name: cni
         hostPath:
           path: /etc/cni/net.d
+      - name: cni-bin-dir
+        hostPath:
+          path: /opt/cni/bin
+          type: ""
       - name: flannel-cfg
         configMap:
           name: kube-flannel-cfg

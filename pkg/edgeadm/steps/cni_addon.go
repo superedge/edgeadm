@@ -17,10 +17,11 @@ limitations under the License.
 package steps
 
 import (
+	"path/filepath"
+
 	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	clientset "k8s.io/client-go/kubernetes"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
-	"path/filepath"
 
 	"k8s.io/klog/v2"
 	"k8s.io/kubernetes/cmd/kubeadm/app/cmd/options"
@@ -77,6 +78,7 @@ func EnsureFlannelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edge
 	option := map[string]interface{}{
 		"PodNetworkCidr": cfg.Networking.PodSubnet,
 		"FlannelImage":   common.GetEdgeFlannel(edgeadmConf),
+		"InitCniImage":   common.GetInitCniPlugin(edgeadmConf),
 	}
 
 	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.KUBE_FLANNEL)
