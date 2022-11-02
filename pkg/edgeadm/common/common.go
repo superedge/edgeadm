@@ -20,11 +20,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
-	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
+	kubeadmutil "k8s.io/kubernetes/cmd/kubeadm/app/util"
 
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -564,6 +565,16 @@ func GetEdgeFlannel(edgeConf *cmd.EdgeadmConfig) string {
 		imageRepository = edgeConf.EdgeImageRepository
 	}
 	return fmt.Sprintf("%s/%s:%s", imageRepository, "flannel", constant.FlannelVersion)
+}
+
+func GetInitCniPlugin(edgeConf *cmd.EdgeadmConfig) string {
+	var imageRepository string
+	if edgeConf == nil || edgeConf.EdgeImageRepository == "" {
+		imageRepository = constant.ImageRepository
+	} else {
+		imageRepository = edgeConf.EdgeImageRepository
+	}
+	return fmt.Sprintf("%s/%s:%s", imageRepository, "init-cni-plugins", constant.InitCNIVersion)
 }
 
 func GetEdgeKubeProxy(edgeConf *cmd.EdgeadmConfig, k8sversion string) string {
