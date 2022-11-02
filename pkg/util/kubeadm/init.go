@@ -29,7 +29,6 @@ import (
 	"text/template"
 
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
