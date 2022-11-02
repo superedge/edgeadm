@@ -146,7 +146,8 @@ const (
 	ImageRepository = "superedge.tencentcloudcr.com/superedge"
 	Version         = "v0.7.0"
 	CoreDNSVersion  = "1.6.9"
-	FlannelVersion  = "v0.13.0"
+	FlannelVersion  = "v0.12.0-edge-2.0"
+	InitCNIVersion  = "v0.8.3-edge-1.2"
 )
 
 const (

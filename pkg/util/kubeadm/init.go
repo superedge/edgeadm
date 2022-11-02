@@ -29,7 +29,6 @@ import (
 	"text/template"
 
 	"github.com/superedge/edgeadm/pkg/util/kubeclient"
-
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
