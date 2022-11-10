@@ -28,12 +28,10 @@
 
 #### 1. 两条指令从零搭建一个边缘集群
 -   下载安装包
-> main 主分支现在仅支持部署 Kubernetes 1.22.6版本，注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变。此静态安装包也可以从 [Github Release页面](https://github.com/superedge/superedge/releases/tag/v0.8.0) 下载
-```
-arch=amd64 version=v0.8.0 kubernetesVersion=1.22.6 && rm -rf edgeadm-linux-* && wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/$version/$arch/edgeadm-linux-$arch-$version-k8s-$kubernetesVersion.tgz && tar -xzvf edgeadm-linux-* && cd edgeadm-linux-$arch-$version-k8s-$kubernetesVersion && ./edgeadm
-```
+> main 主分支现在仅支持部署 Kubernetes 1.22.6版本，注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变。此静态安装包也可以从 [Github Release页面](https://github.com/superedge/edgeadm/releases/tag/v0.8.1) 下载
 
 -   安装边缘 Kubernetes master 节点
+将下载的压缩包解压后，进入目录，执行下面的命令：
 ```shell
 ./edgeadm init --kubernetes-version=1.22.6 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.244.0.0/16 --pod-network-cidr=10.233.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网 IP/域名等> --apiserver-advertise-address=<Master节点内网 IP> --enable-edge=true
 ```
