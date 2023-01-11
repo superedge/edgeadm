@@ -33,6 +33,7 @@ rules:
   - apiGroups:
       - ""
     resources:
+      - pods
       - nodes
       - nodes/proxy
     verbs:
@@ -80,36 +81,55 @@ spec:
     spec:
       serviceAccountName: edge-health
       containers:
-        - name: edge-health
-          image: {{.EdgeHealthImage}}
-          imagePullPolicy: IfNotPresent
-          resources:
-            limits: 
-              cpu: 50m
-              memory: 100Mi
-            requests: 
-              cpu: 10m
-              memory: 20Mi
-          command:
-            - edge-health
-          args:
-            - --kubeletauthplugin=timeout=5,retrytime=3,weight=1,port=10250
-            - --v=2
-          env:
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: spec.nodeName
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: metadata.namespace
-          securityContext:
-            procMount: Default
+      - name: edge-health
+        image: {{.EdgeHealthImage}}
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits: 
+            cpu: 200m
+            memory: 256Mi
+          requests: 
+            cpu: 10m
+            memory: 20Mi
+        command:
+          - edge-health
+        args:
+          - --kubeletauthplugin=timeout=5,retrytime=3,weight=1,port=10250
+          - --v=2
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        ports:
+        - containerPort: 51005
+          hostPort: 51005
+          name: http
+          protocol: TCP
+      securityContext:
+        procMount: Default
       dnsPolicy: ClusterFirst
-      hostNetwork: true
       nodeSelector:
         superedge.io/node-edge: enable
       restartPolicy: Always
@@ -121,6 +141,8 @@ kind: ConfigMap
 metadata:
   name: hmac-config
   namespace: {{.Namespace}}
+  labels:
+    name: edge-health
 data:
   hmackey: {{.HmacKey}}
 `
