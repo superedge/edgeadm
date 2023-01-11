@@ -45,11 +45,10 @@ const (
 )
 
 const (
-	ServiceKubernetes    = "kubernetes"
-	ServiceTunnelCloud   = "tunnel-cloud"
-	ServiceEdgeCoreDNS   = "edge-coredns"
-	ServiceTunnelCoreDNS = "tunnel-coredns"
-	CorednsDummy         = "tkeedgedns"
+	ServiceKubernetes  = "kubernetes"
+	ServiceTunnelCloud = "tunnel-cloud"
+	ServiceEdgeCoreDNS = "edge-coredns"
+	CorednsDummy       = "tkeedgedns"
 )
 
 const (
@@ -109,16 +108,15 @@ const (
 )
 
 const (
-	EdgeCertCM             = "edge-info"
-	EdgeNodeHostConfig     = "host-config"
-	InsecureRegistries     = "insecure-registries"
-	EdgeNodeDelayDomain    = "node-delay-domain"
-	LiteAPIServerTLSJSON   = "tls.json"
-	KubeAPIClusterIP       = "kube-api-cluster-ip"
-	KubeAPICACrt           = "kube-api-ca.crt"
-	LiteAPIServerCrt       = "lite-apiserver.crt"
-	LiteAPIServerKey       = "lite-apiserver.key"
-	TunnelCoreDNSClusterIP = "tunnel-coredns-cluster-ip"
+	EdgeCertCM           = "edge-info"
+	EdgeNodeHostConfig   = "host-config"
+	InsecureRegistries   = "insecure-registries"
+	EdgeNodeDelayDomain  = "node-delay-domain"
+	LiteAPIServerTLSJSON = "tls.json"
+	KubeAPIClusterIP     = "kube-api-cluster-ip"
+	KubeAPICACrt         = "kube-api-ca.crt"
+	LiteAPIServerCrt     = "lite-apiserver.crt"
+	LiteAPIServerKey     = "lite-apiserver.key"
 )
 
 const (

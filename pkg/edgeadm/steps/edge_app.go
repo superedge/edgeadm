@@ -166,25 +166,11 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 		return err
 	}
 
-	// Deploy tunnel-coredns
-	option := map[string]interface{}{
-		"Namespace":    constant.NamespaceEdgeSystem,
-		"CoreDnsImage": common.GetEdgeDnsImage(edgeadmConf),
-	}
-
-	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
-	TunnelCoredns := common.ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err := kubeclient.CreateResourceWithFile(client, TunnelCoredns, option)
-	if err != nil {
-		return err
-	}
-	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_CORDDNS)
-
 	// Deploy tunnel-cloud
 	certSANs := cfg.APIServer.CertSANs
 	caKeyFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CAKeyName)
 	caCertFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CACertName)
-	if err = common.DeployTunnelCloud(client, edgeadmConf.ManifestsDir,
+	if err := common.DeployTunnelCloud(client, edgeadmConf.ManifestsDir,
 		caCertFile, caKeyFile, edgeadmConf.TunnelCloudToken, certSANs, cfg, edgeadmConf); err != nil {
 		klog.Errorf("Deploy tunnel-cloud, error: %v", err)
 		return err
@@ -388,16 +374,6 @@ func deleteTunnelAddon(c workflow.RunData) error {
 		return err
 	}
 	klog.Infof("Delete %s success!", manifests.APP_TUNNEL_CLOUD)
-
-	// Delete tunnel-coredns
-	option := map[string]interface{}{}
-	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
-	TunnelCoredns := common.ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err = kubeclient.DeleteResourceWithFile(client, TunnelCoredns, option)
-	if err != nil {
-		return err
-	}
-	klog.Infof("Delete %s success!", manifests.APP_TUNNEL_CORDDNS)
 
 	return err
 

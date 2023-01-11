@@ -46,11 +46,6 @@ func (c *changeAction) runKubeamdChange() error {
 		return err
 	}
 
-	// Create APPs that do not affect the use of the original cluster
-	if err := c.deployTunnelCoreDNS(); err != nil {
-		return err
-	}
-
 	// Create tunnel-cloud
 	tunnelCloudToken, err := c.deployTunnelCloud()
 	if err != nil {
@@ -125,22 +120,6 @@ func (c *changeAction) runKubeamdChange() error {
 	}
 
 	util.OutSuccessMessage("Deploy Kubeadm Cluster Change To Edge cluster Success!")
-
-	return nil
-}
-
-func (c *changeAction) deployTunnelCoreDNS() error {
-	option := map[string]interface{}{
-		"Namespace":              constant.NamespaceEdgeSystem,
-		"TunnelCoreDNSClusterIP": "",
-	}
-	tunnelCoreDNSYaml := common.ReadYaml(c.manifests+"/"+manifests.APP_TUNNEL_CORDDNS, manifests.TunnelCorednsYaml)
-	err := kubeclient.CreateResourceWithFile(c.clientSet, tunnelCoreDNSYaml, option)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Create tunnel-coredns.yaml success!")
 
 	return nil
 }

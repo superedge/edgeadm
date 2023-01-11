@@ -84,7 +84,7 @@ data:
             reload 300ms
             fallthrough
         }
-        ready
+        ready localhost:8191
         kubernetes cluster.local in-addr.arpa ip6.arpa {
            pods insecure
            fallthrough in-addr.arpa ip6.arpa
@@ -145,7 +145,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /ready
-            port: 8181
+            port: 8191
             scheme: HTTP
         securityContext:
           allowPrivilegeEscalation: false

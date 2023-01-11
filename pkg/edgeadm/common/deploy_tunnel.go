@@ -23,23 +23,10 @@ import (
 
 // runCoreDNSAddon installs CoreDNS addon to a Kubernetes cluster
 func DeployTunnelAddon(kubeconfigFile string, client kubernetes.Interface, manifestsDir, caCertFile, caKeyFile, tunnelCloudPublicAddr string, certSANs []string) error {
-	// Deploy tunnel-coredns
-	option := map[string]interface{}{
-		"Namespace":              constant.NamespaceEdgeSystem,
-		"TunnelCoreDNSClusterIP": "",
-		"CoreDnsImage":           GetEdgeDnsImage(nil),
-	}
-	userManifests := filepath.Join(manifestsDir, manifests.APP_TUNNEL_CORDDNS)
-	TunnelCoredns := ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err := kubeclient.CreateResourceWithFile(client, TunnelCoredns, option)
-	if err != nil {
-		return err
-	}
-	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_CORDDNS)
 
 	// Deploy tunnel-cloud
 	tunnelCloudToken := util.GetRandToken(32)
-	if err = DeployTunnelCloud(client, manifestsDir,
+	if err := DeployTunnelCloud(client, manifestsDir,
 		caCertFile, caKeyFile, tunnelCloudToken, certSANs, nil, nil); err != nil {
 		klog.Errorf("Deploy tunnel-cloud, error: %v", err)
 		return err
@@ -162,20 +149,6 @@ func DeleteTunnelAddon(client kubernetes.Interface, manifestsDir, caCertFile, ca
 	}
 	klog.Infof("Delete %s success!", manifests.APP_TUNNEL_CLOUD)
 
-	// Delete tunnel-coredns
-	option := map[string]interface{}{
-		"Namespace":              constant.NamespaceEdgeSystem,
-		"TunnelCoreDNSClusterIP": "",
-		"CoreDnsImage":           GetEdgeDnsImage(nil),
-	}
-	userManifests := filepath.Join(manifestsDir, manifests.APP_TUNNEL_CORDDNS)
-	TunnelCoredns := ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err = kubeclient.DeleteResourceWithFile(client, TunnelCoredns, option)
-	if err != nil {
-		return err
-	}
-	klog.Infof("Delete %s success!", manifests.APP_TUNNEL_CORDDNS)
-
 	return err
 }
 
@@ -234,11 +207,6 @@ func getTunnelCloudResource(clientSet kubernetes.Interface, manifestsDir, caCert
 		return "", nil, err
 	}
 
-	tunnelProxyServerCrt, tunnelProxyServerKey, err := GetServiceCert("TunnelCloudClient", caCertFile, caKeyFile, []string{}, []string{})
-	if err != nil {
-		return "", nil, err
-	}
-
 	tunnelAnpServerCrt, tunnelAnpServerKey, err := GetServiceCert("TunnelAnpServer", caCertFile, caKeyFile, []string{"tunnel-cloud.edge-system.svc.cluster.local"}, []string{})
 	if err != nil {
 		return "", nil, err
@@ -249,8 +217,6 @@ func getTunnelCloudResource(clientSet kubernetes.Interface, manifestsDir, caCert
 		"TunnelCloudEdgeToken":                tunnelCloudToken,
 		"TunnelPersistentConnectionServerKey": base64.StdEncoding.EncodeToString(serviceKey),
 		"TunnelPersistentConnectionServerCrt": base64.StdEncoding.EncodeToString(serviceCert),
-		"TunnelProxyServerKey":                base64.StdEncoding.EncodeToString(tunnelProxyServerKey),
-		"TunnelProxyServerCrt":                base64.StdEncoding.EncodeToString(tunnelProxyServerCrt),
 		"TunnelAnpServerCet":                  base64.StdEncoding.EncodeToString(tunnelAnpServerCrt),
 		"TunnelAnpServerKey":                  base64.StdEncoding.EncodeToString(tunnelAnpServerKey),
 	}
@@ -268,12 +234,6 @@ func getTunnelEdgeResource(clientSet kubernetes.Interface, manifestsDir,
 		return "", nil, err
 	}
 
-	caClientCert, caClientKey, err := GetClientCert(
-		"TunnelCloudClient", caCertFile, caKeyFile)
-	if err != nil {
-		return "", nil, err
-	}
-
 	masterIps, err := GetMasterIps(clientSet)
 	if err != nil {
 		return "", nil, err
@@ -286,8 +246,6 @@ func getTunnelEdgeResource(clientSet kubernetes.Interface, manifestsDir,
 		"Namespace":                      constant.NamespaceEdgeSystem,
 		"MasterIP":                       tunnelCloudNodeAddr,
 		"KubernetesCaCert":               base64.StdEncoding.EncodeToString(caCert),
-		"KubeletClientKey":               base64.StdEncoding.EncodeToString(caClientKey),
-		"KubeletClientCrt":               base64.StdEncoding.EncodeToString(caClientCert),
 		"TunnelCloudEdgeToken":           tunnelCloudToken,
 		"TunnelPersistentConnectionPort": tunnelCloudNodePort,
 	}
