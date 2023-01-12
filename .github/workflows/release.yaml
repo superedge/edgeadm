@@ -19,7 +19,9 @@ jobs:
           go-version: 1.17.x
 
       - name: Build edgeadm for multiarch(@main)
-        run: sudo make build.multiarch
+        run: |
+          go version
+          sudo make build.multiarch
 
       - name: Checkout edge-install static file(@AMD64-1.22)
         uses: actions/checkout@v3
