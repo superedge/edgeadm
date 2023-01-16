@@ -110,6 +110,16 @@ func NewEdgeAppsPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 				},
 				Run: updateKubeConfig,
 			},
+			{
+				Name:         "label-node",
+				Hidden:       true,
+				Short:        "Label master node",
+				InheritFlags: getAddonPhaseFlags("update-config"),
+				RunIf: func(data workflow.RunData) (bool, error) {
+					return config.IsEnableEdge, nil
+				},
+				Run: labelCLoudNode,
+			},
 		},
 	}
 }
@@ -276,6 +286,24 @@ func updateKubeConfig(c workflow.RunData) error {
 		return err
 	}
 	return EnsureEdgeKubeConfig(initConfiguration, edgeConf, client)
+
+}
+
+func labelCLoudNode(c workflow.RunData) error {
+	initConfiguration, _, client, err := getInitData(c)
+	if err != nil {
+		return err
+	}
+
+	masterLabel := map[string]string{
+		constant.CloudNodeLabelKey: constant.CloudNodeLabelValueEnable,
+	}
+
+	if err := kubeclient.AddNodeLabel(client, initConfiguration.NodeRegistration.Name, masterLabel); err != nil {
+		klog.Errorf("Add Cloud Node node label error: %v", err)
+		return err
+	}
+	return nil
 
 }
 
