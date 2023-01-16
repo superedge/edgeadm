@@ -138,6 +138,10 @@ spec:
       port: 8000
       protocol: TCP
       targetPort: 8000
+    - name: http-proxy
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
   selector:
     app: tunnel-cloud
   type: NodePort
