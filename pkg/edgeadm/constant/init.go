@@ -58,8 +58,7 @@ const (
 )
 
 const (
-	TunnelCoreDNSCIDRIndex = 11
-	KubeAPIServerPatch     = "kube-apiserver0+merge.yaml"
+	KubeAPIServerPatch = "kube-apiserver0+merge.yaml"
 )
 
 const KubeAPIServerPatchYaml = `
