@@ -144,6 +144,7 @@ spec:
             scheme: HTTP
         readinessProbe:
           httpGet:
+            host: 127.0.0.1
             path: /ready
             port: 8191
             scheme: HTTP
