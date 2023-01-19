@@ -255,7 +255,7 @@ func NewAddNodeLabelPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 			if !ok {
 				return false, errors.New("installLiteAPIServer phase invoked with an invalid data struct")
 			}
-			if data.Cfg().ControlPlane == nil && !config.IsEnableEdge {
+			if data.Cfg().ControlPlane != nil || !config.IsEnableEdge {
 				addCloudNodeLabel(c)
 			}
 			return config.IsEnableEdge && data.Cfg().ControlPlane == nil, nil
