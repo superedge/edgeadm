@@ -62,6 +62,7 @@ data:
             	[mode.cloud.stream.server]
                 	grpc_port = 9000
                 	log_port = 51010
+                    metrics_port = 6000
             	[mode.cloud.stream.register]
                  	service = "tunnel-cloud"
         	[mode.cloud.egress]

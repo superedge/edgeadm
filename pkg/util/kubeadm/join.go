@@ -230,7 +230,6 @@ func NewJoinCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 				os.MkdirAll(path.Dir(patchDir), 0755)
 				joinOptions.patchesDir = patchDir
 			}
-
 			if err := util.WriteFile(joinOptions.patchesDir+constant.KubeAPIServerPatch, constant.KubeAPIServerPatchYaml); err != nil {
 				klog.Errorf("Write file: %s, error: %v", constant.KubeAPIServerPatch, err)
 				return err

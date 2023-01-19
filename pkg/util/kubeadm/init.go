@@ -27,18 +27,18 @@ import (
 	"strings"
 	"text/template"
 
-	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
-	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	kubeadmapi "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm"
 	kubeadmscheme "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/scheme"
+	kubeadmapiv1beta3 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta3"
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/validation"
 	"k8s.io/kubernetes/cmd/kubeadm/app/cmd/options"
 	phases "k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/init"
@@ -205,14 +205,6 @@ func NewInitCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 			return err
 		}
 
-		//schduelr config
-		kubeSchedulerConfDir := initOptions.kubeconfigDir + "/"
-		os.MkdirAll(path.Dir(kubeSchedulerConfDir), 0755)
-		moveKubeSchedulerConf := fmt.Sprintf("mv -f %s %s", edgeConfig.WorkerPath+constant.KubeSchedulerConf, kubeSchedulerConfDir)
-		if _, _, err := util.RunLinuxCommand(moveKubeSchedulerConf); err != nil {
-			return err
-		}
-
 		// set edgeadm crisocket for runtime
 		switch edgeConfig.ContainerRuntime {
 		case constant.ContainerRuntimeDocker:
@@ -339,42 +331,11 @@ func edgeadmConfigUpdate(initOptions *initOptions, edgeadmConfig *cmd.EdgeadmCon
 			PathType:  v1.HostPathDirectoryOrCreate,
 		},
 	}
-	clusterConfig := initOptions.externalClusterCfg
-
 	option := map[string]interface{}{}
 	kubeAPIServerPatch, err := kubeclient.ParseString(constant.KubeAPIServerPatchYaml, option)
 	if err != nil {
 		klog.Errorf("Parse %s yaml: %s, option: %v, error: %v", constant.KubeAPIServerPatch, option, err)
 		return err
-	}
-
-	// kube-scheduler
-	if util.IsFileExist(constant.SchedulerConfig) && util.IsFileExist(constant.SchedulerPolicy) {
-		schedulerConfig := clusterConfig.Scheduler
-		if len(schedulerConfig.ExtraArgs) == 0 {
-			schedulerConfig.ExtraArgs = make(map[string]string)
-		}
-		//In order to be compatible with more K8s versions, remove the topolvm extended scheduler configuration.
-		//Because 1.20 and above does not have a KubeSchedulerConfiguration object. Edge into manual support.
-		//schedulerConfig.ExtraArgs["config"] = constant.SchedulerConfig
-		//schedulerConfig.ExtraArgs["policy-config-file"] = constant.SchedulerPolicy
-		schedulerConfig.ExtraVolumes = append(schedulerConfig.ExtraVolumes, []kubeadmapiv1beta3.HostPathMount{
-			{
-				"kube-scheduler-config",
-				constant.SchedulerConfig,
-				constant.SchedulerConfig,
-				true,
-				v1.HostPathFileOrCreate,
-			},
-			{
-				"kube-scheduler-policy",
-				constant.SchedulerPolicy,
-				constant.SchedulerPolicy,
-				true,
-				v1.HostPathFileOrCreate,
-			},
-		}...)
-		clusterConfig.Scheduler = schedulerConfig
 	}
 
 	// kube-* patch config
