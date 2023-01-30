@@ -29,23 +29,29 @@
 
 #### 1. 两条指令从零搭建一个边缘集群
 -   下载安装包
-> main 主分支现在仅支持部署 Kubernetes 1.22.6版本，注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变。此静态安装包也可以从 [Github Release页面](https://github.com/superedge/edgeadm/releases/tag/v0.8.1) 下载
+> main 主分支现在仅支持部署 Kubernetes 1.22.6版本，注意修改"arch=amd64"参数，目前支持[amd64, arm64], 下载自己机器对应的体系结构，其他参数不变。此静态安装包也可以从 [Github Release页面](https://github.com/superedge/edgeadm/releases/tag/v0.8.2) 下载
 
 -   安装边缘 Kubernetes master 节点
 将下载的压缩包解压后，进入目录，执行下面的命令：
 ```shell
-./edgeadm init --kubernetes-version=1.22.6 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.244.0.0/16 --pod-network-cidr=10.233.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网 IP/域名等> --apiserver-advertise-address=<Master节点内网 IP> --enable-edge=true
+./edgeadm init --kubernetes-version=1.22.6 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.244.0.0/16 --pod-network-cidr=10.233.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master节点外网 IP/域名等> --apiserver-advertise-address=<Master节点内网 IP> --enable-edge=true --edge-version=0.8.2
 ```
 
 > --apiserver-cert-extra-sans=<Master节点外网 IP/域名等>：这里的外网 IP 指的是边缘节点需要接入的云端控制面的公网 IP以及外网域名，apiserver 会签发相应的证书供边缘节点访问
 >
 > --apiserver-advertise-address=<Master节点内网 IP>：这里的内网 IP 指的是 edgeadm 用于初始化 etcd 和 apiserver 需要绑定的节点内部 IP
+>
+> --edge-version=0.8.2：这里需要指定最新v0.8.2的版本，可以使用最新的云边隧道能力，支持云端 master、worker 和边缘节点三种类型节点的 7 层协议互通，适配更加完善
 
 -   Join 边缘节点
 
 ```shell
 ./edgeadm join <Master节点外网IP/域名>:Port --token xxxx --discovery-token-ca-cert-hash sha256:xxxxxxxxxx --install-pkg-path <edgeadm kube-*静态安装包地址> --enable-edge=true 
 ```
+
+
+> --enable-edge=true: true 代表是边缘节点，会部署 lite-apiserver 等边缘组件；false 代表是云上 worker 节点，会按照标准 kubeadm 方式部署，不会部署边缘组件
+
 
 详情见：[从零搭建边缘集群](./docs/installation/install_edge_kubernetes_CN.md)
 
