@@ -31,20 +31,17 @@ data:
             [mode.edge.stream]
                 [mode.edge.stream.client]
                     token = "{{.TunnelCloudEdgeToken}}"
-                    cert = "/etc/superedge/tunnel/certs/cluster-ca.crt"
                     dns = "127.0.0.1"
-                    servername = "{{.MasterIP}}:{{.TunnelPersistentConnectionPort}}"
-                    logport = 51010
-                [mode.edge.https]
-                    cert= "/etc/superedge/tunnel/certs/apiserver-kubelet-client.crt"
-                    key=  "/etc/superedge/tunnel/certs/apiserver-kubelet-client.key"
+                    server_name = "{{.MasterIP}}:{{.TunnelPersistentConnectionPort}}"
+                    log_port = 51010
+            [mode.edge.httpproxy]
+                proxyip = "0.0.0.0"
+                proxyport = "51009"
                 
 ---
 apiVersion: v1
 data:
-  cluster-ca.crt: '{{.KubernetesCaCert}}'
-  apiserver-kubelet-client.crt: '{{.KubeletClientCrt}}'
-  apiserver-kubelet-client.key: '{{.KubeletClientKey}}'
+  ca.crt: '{{.KubernetesCaCert}}'
 kind: Secret
 metadata:
   name: tunnel-edge-cert
@@ -98,14 +95,14 @@ spec:
                   fieldPath: spec.nodeName
           args:
             - --m=edge
-            - --c=/etc/superedge/tunnel/conf/mode.toml
+            - --c=/etc/tunnel/conf/mode.toml
             - --log-dir=/var/log/tunnel
             - --alsologtostderr
           volumeMounts:
             - name: certs
-              mountPath: /etc/superedge/tunnel/certs
+              mountPath: /etc/tunnel/certs
             - name: conf
-              mountPath: /etc/superedge/tunnel/conf
+              mountPath: /etc/tunnel/conf
       volumes:
         - secret:
             secretName: tunnel-edge-cert

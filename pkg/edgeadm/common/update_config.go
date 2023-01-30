@@ -226,16 +226,9 @@ func UpdateKubernetesEndpoint(clientSet kubernetes.Interface, edgeConf *cmd.Edge
 		return err
 	}
 
-	var liteapiserver string
-	if edgeConf == nil {
-		liteapiserver = constant.DefaultEdgeVirtualAddr
-	} else {
-		liteapiserver = edgeConf.EdgeVirtualAddr
-	}
-
 	annotations := make(map[string]string)
 	annotations[constant.EdgeLocalPort] = "51003"
-	annotations[constant.EdgeLocalHost] = liteapiserver
+	annotations[constant.EdgeLocalHost] = edgeConf.EdgeVirtualAddr
 	endpoint.Annotations = annotations
 	if _, err := clientSet.CoreV1().Endpoints(
 		constant.NamespaceDefault).Update(context.TODO(), endpoint, metav1.UpdateOptions{}); err != nil {
@@ -252,16 +245,9 @@ func UpdateKubernetesEndpointSlice(clientSet kubernetes.Interface, edgeConf *cmd
 		return err
 	}
 
-	var liteapiserver string
-	if edgeConf == nil {
-		liteapiserver = constant.DefaultEdgeVirtualAddr
-	} else {
-		liteapiserver = edgeConf.EdgeVirtualAddr
-	}
-
 	annotations := make(map[string]string)
 	annotations[constant.EdgeLocalPort] = "51003"
-	annotations[constant.EdgeLocalHost] = liteapiserver
+	annotations[constant.EdgeLocalHost] = edgeConf.EdgeVirtualAddr
 	endpointSlice.Annotations = annotations
 	if _, err := clientSet.DiscoveryV1beta1().EndpointSlices(
 		constant.NamespaceDefault).Update(context.TODO(), endpointSlice, metav1.UpdateOptions{}); err != nil {

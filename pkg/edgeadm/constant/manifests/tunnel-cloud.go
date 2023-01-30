@@ -28,8 +28,11 @@ rules:
     resources: [ "configmaps" ]
     verbs: [ "get", "update" ]
   - apiGroups: [ "" ]
-    resources: [ "endpoints","services","pods","nodes" ]
+    resources: [ "services","pods","nodes" ]
     verbs: [ "get","list","watch" ]
+  - apiGroups: [ "" ]
+    resources: [ "endpoints" ]
+    verbs: [ "get","list","watch","create","update" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -54,31 +57,20 @@ apiVersion: v1
 data:
   mode.toml: |
     [mode]
-        [mode.cloud]
-            [mode.cloud.stream]
-                [mode.cloud.stream.server]
-                    grpcport = 9000
-                    logport = 51010
-                    metricsport = 6000
-                    key = "/etc/superedge/tunnel/certs/tunnel-cloud-server.key"
-                    cert = "/etc/superedge/tunnel/certs/tunnel-cloud-server.crt"
-                    tokenfile = "/etc/superedge/tunnel/token/token"
-                [mode.cloud.stream.dns]
-                     configmap="tunnel-nodes"
-                     hosts = "/etc/superedge/tunnel/nodes/hosts"
-                     service = "tunnel-cloud"
-            [mode.cloud.tcp]
-                "0.0.0.0:6443" = "127.0.0.1:6443"
-            [mode.cloud.https]
-                cert ="/etc/superedge/tunnel/certs/apiserver-kubelet-server.crt"
-                key = "/etc/superedge/tunnel/certs/apiserver-kubelet-server.key"
-                [mode.cloud.https.addr]
-                    "10250" = "127.0.0.1:10250"
-                    "9100" = "127.0.0.1:9100"
-            [mode.cloud.egress]
-              servercert="/etc/superedge/tunnel/certs/tunnel-anp-server.crt"
-              serverkey="/etc/superedge/tunnel/certs/tunnel-anp-server.key"
-              egressport="8000"
+    	[mode.cloud]
+        	[mode.cloud.stream]
+            	[mode.cloud.stream.server]
+                	grpc_port = 9000
+                	log_port = 51010
+                    metrics_port = 6000
+            	[mode.cloud.stream.register]
+                 	service = "tunnel-cloud"
+        	[mode.cloud.egress]
+             	port = 8000
+        	[mode.cloud.http_proxy]
+             	port = 8080
+        	[mode.cloud.ssh]
+             	port = 22
 kind: ConfigMap
 metadata:
   name: tunnel-cloud-conf
@@ -95,17 +87,34 @@ data:
 ---
 apiVersion: v1
 data:
-  tunnel-cloud-server.crt: '{{.TunnelPersistentConnectionServerCrt}}'
-  tunnel-cloud-server.key: '{{.TunnelPersistentConnectionServerKey}}'
-  apiserver-kubelet-server.crt: '{{.TunnelProxyServerCrt}}'
-  apiserver-kubelet-server.key: '{{.TunnelProxyServerKey}}'
-  tunnel-anp-server.crt: '{{.TunnelAnpServerCet}}'
-  tunnel-anp-server.key: '{{.TunnelAnpServerKey}}'
+  cloud.crt: '{{.TunnelPersistentConnectionServerCrt}}'
+  cloud.key: '{{.TunnelPersistentConnectionServerKey}}'
+  egress.crt: '{{.TunnelAnpServerCet}}'
+  egress.key: '{{.TunnelAnpServerKey}}'
 kind: Secret
 metadata:
   name: tunnel-cloud-cert
   namespace: {{.Namespace}}
 type: Opaque
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tunnel-nodes
+  namespace: {{.Namespace}}
+data:
+  hosts: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tunnel-cache
+  namespace: {{.Namespace}}
+data:
+  edge_nodes: ""
+  cloud_nodes: ""
+  services: ""
+  user_services: ""
 ---
 apiVersion: v1
 kind: Service
@@ -130,6 +139,10 @@ spec:
       port: 8000
       protocol: TCP
       targetPort: 8000
+    - name: http-proxy
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
   selector:
     app: tunnel-cloud
   type: NodePort
@@ -169,7 +182,7 @@ spec:
             - /usr/local/bin/tunnel
           args:
             - --m=cloud
-            - --c=/etc/superedge/tunnel/conf/mode.toml
+            - --c=/etc/tunnel/conf/mode.toml
             - --log-dir=/var/log/tunnel
             - --alsologtostderr
           env:
@@ -188,27 +201,22 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.name
+            - name: USER_NAMESPACE
+              value: edge-system
           volumeMounts:
             - name: token
-              mountPath: /etc/superedge/tunnel/token
+              mountPath: /etc/tunnel/token
             - name: certs
-              mountPath: /etc/superedge/tunnel/certs
+              mountPath: /etc/tunnel/certs
             - name: hosts
-              mountPath: /etc/superedge/tunnel/nodes
+              mountPath: /etc/tunnel/nodes
             - name: conf
-              mountPath: /etc/superedge/tunnel/conf
+              mountPath: /etc/tunnel/conf
+            - name: cache
+              mountPath: /etc/tunnel/cache
           ports:
             - containerPort: 9000
               name: tunnel
-              protocol: TCP
-            - containerPort: 7000
-              name: gateway
-              protocol: TCP
-            - containerPort: 10250
-              name: kubelet
-              protocol: TCP
-            - containerPort: 6443
-              name: apiserver
               protocol: TCP
           resources:
             limits:
@@ -227,6 +235,9 @@ spec:
         - name: hosts
           configMap:
             name: tunnel-nodes
+        - name: cache
+          configMap:
+            name: tunnel-cache
         - name: conf
           configMap:
             name: tunnel-cloud-conf

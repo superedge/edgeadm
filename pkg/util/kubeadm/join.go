@@ -19,6 +19,7 @@ package kubeadm
 
 import (
 	"fmt"
+	"github.com/superedge/edgeadm/pkg/util"
 	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -229,6 +230,10 @@ func NewJoinCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 				os.MkdirAll(path.Dir(patchDir), 0755)
 				joinOptions.patchesDir = patchDir
 			}
+			if err := util.WriteFile(joinOptions.patchesDir+constant.KubeAPIServerPatch, constant.KubeAPIServerPatchYaml); err != nil {
+				klog.Errorf("Write file: %s, error: %v", constant.KubeAPIServerPatch, err)
+				return err
+			}
 		}
 		steps.EdgeadmConf = edgeConfig
 		dstInstallPackagePath := edgeConfig.WorkerPath + constant.EdgeamdDir
@@ -268,7 +273,9 @@ func NewJoinCMD(out io.Writer, edgeConfig *cmd.EdgeadmConfig) *cobra.Command {
 	joinRunner.AppendPhase(steps.NewLiteApiServerInitPhase(edgeConfig))
 	// add logic of join edge node
 	joinRunner.AppendPhase(phases.NewPreflightPhase())
+	joinRunner.AppendPhase(newControlPlanePrepareEdgeConfPhase())
 	joinRunner.AppendPhase(phases.NewControlPlanePreparePhase())
+	joinRunner.AppendPhase(newControlPlanePrepareEdgeCertsSubphase())
 	joinRunner.AppendPhase(phases.NewCheckEtcdPhase())
 	joinRunner.AppendPhase(phases.NewKubeletStartPhase())
 	joinRunner.AppendPhase(steps.NewKubeVIPJoinPhase(edgeConfig))

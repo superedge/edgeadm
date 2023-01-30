@@ -40,9 +40,9 @@ import (
 var (
 	edgeadmConf = cmd.EdgeadmConfig{
 		IsEnableEdge:   true,
-		WorkerPath:     "/tmp/",
+		WorkerPath:     "/tmp/edgeadm-tmp",
 		Kubeconfig:     "~/.kube/config",
-		ManifestsDir:   "/tmp/edge-manifests",
+		ManifestsDir:   "/tmp/edgeadm-tmp/edge-manifests",
 		InstallPkgPath: "",
 	}
 )

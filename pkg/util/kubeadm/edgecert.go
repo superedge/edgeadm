@@ -26,6 +26,7 @@ import (
 	kubeadmapiv1beta2 "k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
 	"k8s.io/kubernetes/cmd/kubeadm/app/cmd/options"
 	kubeadminit "k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/init"
+	phases "k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/join"
 	"k8s.io/kubernetes/cmd/kubeadm/app/cmd/phases/workflow"
 	cmdutil "k8s.io/kubernetes/cmd/kubeadm/app/cmd/util"
 	kubeadmconstants "k8s.io/kubernetes/cmd/kubeadm/app/constants"
@@ -291,4 +292,57 @@ func runCertPhase(cert *KubeadmCert, caCert *KubeadmCert) func(c workflow.RunDat
 		// create the new certificate (or use existing)
 		return CreateCertAndKeyFilesWithCA(cert, caCert, cfg)
 	}
+}
+
+func newControlPlanePrepareEdgeCertsSubphase() workflow.Phase {
+	return workflow.Phase{
+		Name:         "certs [egress]",
+		Short:        "Generate the certificates for the new control plane components",
+		Run:          runControlPlanePrepareCertsPhaseLocal, //NB. eventually in future we would like to break down this in sub phases for each cert or add the --csr option
+		InheritFlags: []string{},
+	}
+}
+
+func runControlPlanePrepareCertsPhaseLocal(c workflow.RunData) error {
+	data, ok := c.(phases.JoinData)
+	if !ok {
+		return errors.New("control-plane-prepare phase invoked with an invalid data struct")
+	}
+
+	// Skip if this is not a control plane
+	if data.Cfg().ControlPlane == nil {
+		return nil
+	}
+
+	cfg, err := data.InitCfg()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("[certs] Using certificateDir folder %q\n", cfg.CertificatesDir)
+
+	// Generate missing certificates (if any)
+	return CreateEdgePKIAssets(cfg)
+}
+
+func CreateEdgePKIAssets(cfg *kubeadmapi.InitConfiguration) error {
+
+	// This structure cannot handle multilevel CA hierarchies.
+	// This isn't a problem right now, but may become one in the future.
+
+	certList := GetEdgeCertList()
+
+	certTree, err := certList.AsMap().CertTree()
+	if err != nil {
+		return err
+	}
+
+	if err := certTree.CreateTree(cfg); err != nil {
+		return errors.Wrap(err, "error creating PKI assets")
+	}
+
+	fmt.Printf("[certs] Valid certificates and keys now exist in %q\n", cfg.CertificatesDir)
+
+	// Service accounts are not x509 certs, so handled separately
+	return CreateServiceAccountKeyAndPublicKeyFiles(cfg.CertificatesDir, cfg.ClusterConfiguration.PublicKeyAlgorithm())
 }

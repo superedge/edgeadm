@@ -116,19 +116,12 @@ func getServiceGroupResource(clientSet kubernetes.Interface, manifestsDir string
 		klog.Errorf("Failed to get application-grid-controller, error: %v", err)
 		return "", "", nil, err
 	}
-
-	var liteapiserver string
-	if edgeConf == nil {
-		liteapiserver = constant.DefaultEdgeVirtualAddr
-	} else {
-		liteapiserver = edgeConf.EdgeVirtualAddr
-	}
 	option := map[string]interface{}{
 		"Namespace":           constant.NamespaceEdgeSystem,
 		"AdvertiseAddress":    advertiseAddress,
 		"GridWrapperImage":    gridwrapper,
 		"GridControllerImage": gridcontroller,
-		"ADDRESS":             liteapiserver,
+		"ADDRESS":             edgeConf.EdgeVirtualAddr,
 	}
 	userGridWrapper := filepath.Join(manifestsDir, manifests.APP_APPLICATION_GRID_WRAPPER)
 	gridWrapper := ReadYaml(userGridWrapper, manifests.ApplicationGridWrapperYaml)

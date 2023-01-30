@@ -111,15 +111,6 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 	}
 
 	// Get TunnelCoreDNS Service ClusterIP
-	tunnelCoreDNSService, err := clientSet.CoreV1().Services(
-		constant.NamespaceEdgeSystem).Get(context.TODO(), constant.ServiceTunnelCoreDNS, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	if tunnelCoreDNSService.Spec.ClusterIP == "" {
-		return errors.New("Get kubernetes service clusterIP nil\n")
-	}
-	tunnelCoreDNSIP := tunnelCoreDNSService.Spec.ClusterIP
 
 	edgeInfoCM, error := clientSet.CoreV1().ConfigMaps(constant.NamespaceEdgeSystem).
 		Get(context.TODO(), constant.EdgeCertCM, metav1.GetOptions{})
@@ -130,14 +121,13 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 				Name: constant.EdgeCertCM,
 			},
 			Data: map[string]string{
-				constant.KubeAPICACrt:           string(caCertStr),
-				constant.KubeAPIClusterIP:       kubeAPIClusterIP,
-				constant.LiteAPIServerCrt:       string(liteApiServerCrt),
-				constant.LiteAPIServerKey:       string(liteApiServerKey),
-				manifests.APP_LITE_APISERVER:    string(yamlLiteAPISerer),
-				constant.TunnelCoreDNSClusterIP: tunnelCoreDNSIP,
-				constant.LiteAPIServerTLSJSON:   constant.LiteAPIServerTLSCfg,
-				constant.EdgeVirtualAddr:        egeadmConf.EdgeVirtualAddr,
+				constant.KubeAPICACrt:         string(caCertStr),
+				constant.KubeAPIClusterIP:     kubeAPIClusterIP,
+				constant.LiteAPIServerCrt:     string(liteApiServerCrt),
+				constant.LiteAPIServerKey:     string(liteApiServerKey),
+				manifests.APP_LITE_APISERVER:  string(yamlLiteAPISerer),
+				constant.LiteAPIServerTLSJSON: constant.LiteAPIServerTLSCfg,
+				constant.EdgeVirtualAddr:      egeadmConf.EdgeVirtualAddr,
 			},
 		}
 
@@ -155,7 +145,6 @@ func JoinNodePrepare(clientSet kubernetes.Interface, manifestsDir, caCertFile, c
 	edgeInfoCM.Data[constant.LiteAPIServerKey] = string(liteApiServerKey)
 	edgeInfoCM.Data[manifests.APP_LITE_APISERVER] = string(yamlLiteAPISerer)
 	edgeInfoCM.Data[constant.LiteAPIServerTLSJSON] = constant.LiteAPIServerTLSCfg
-	edgeInfoCM.Data[constant.TunnelCoreDNSClusterIP] = tunnelCoreDNSIP
 	edgeInfoCM.Data[constant.EdgeVirtualAddr] = egeadmConf.EdgeVirtualAddr
 	if _, err := clientSet.CoreV1().ConfigMaps(constant.NamespaceEdgeSystem).
 		Update(context.TODO(), edgeInfoCM, metav1.UpdateOptions{}); err != nil {

@@ -34,7 +34,6 @@ import (
 	"github.com/superedge/edgeadm/pkg/edgeadm/cmd"
 	"github.com/superedge/edgeadm/pkg/edgeadm/constant"
 	"github.com/superedge/edgeadm/pkg/util"
-	"github.com/superedge/edgeadm/pkg/util/kubeclient"
 )
 
 func NewJoinPreparePhase(config *cmd.EdgeadmConfig) workflow.Phase {
@@ -78,14 +77,6 @@ func joinPreparePhase(c workflow.RunData) error {
 		os.Remove(kubeadmconstants.GetBootstrapKubeletKubeConfigPath())
 		os.Remove(constant.KubeadmCertPath)
 	}()
-
-	// prepare join master node
-	if data.Cfg().ControlPlane != nil {
-		if err := prepareJoinMasterNode(kubeClient, data); err != nil {
-			klog.Errorf("Prepare Join master node, error: %v", err)
-			return nil
-		}
-	}
 
 	// prepare join edge node
 	if data.Cfg().ControlPlane == nil {
@@ -224,42 +215,6 @@ func prepareJoinEdgeNode(kubeClient *kubernetes.Clientset, data phases.JoinData,
 			klog.Errorf("Write file: %s, err: %v", constant.UserRegistryCfg, err)
 			return err
 		}
-	}
-
-	return nil
-}
-
-func prepareJoinMasterNode(kubeClient *kubernetes.Clientset, data phases.JoinData) error {
-	if err := setKubeAPIServerPatch(kubeClient, data.PatchesDir()); err != nil {
-		klog.Errorf("Add kube-apiserver patch error: %v", err)
-		return nil
-	}
-	return nil
-}
-
-func setKubeAPIServerPatch(kubeClient *kubernetes.Clientset, patchesDir string) error {
-	edgeInfoConfigMap, err := kubeClient.CoreV1().ConfigMaps(constant.NamespaceEdgeSystem).Get(context.TODO(), constant.EdgeCertCM, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	tunnelCoreDNSClusterIP, ok := edgeInfoConfigMap.Data[constant.TunnelCoreDNSClusterIP]
-	if !ok {
-		return fmt.Errorf("Get tunnelCoreDNSClusterIP configMap %s value nil\n", constant.TunnelCoreDNSClusterIP)
-	}
-
-	option := map[string]interface{}{
-		"TunnelCoreDNSClusterIP": strings.Replace(tunnelCoreDNSClusterIP, "\n", "", -1),
-	}
-	kubeAPIServerPatch, err := kubeclient.ParseString(constant.KubeAPIServerPatchYaml, option)
-	if err != nil {
-		klog.Errorf("Parse %s yaml: %s, option: %v, error: %v", constant.KubeAPIServerPatch, option, err)
-		return err
-	}
-
-	if err := util.WriteFile(patchesDir+constant.KubeAPIServerPatch, string(kubeAPIServerPatch)); err != nil {
-		klog.Errorf("Write file: %s, error: %v", constant.KubeAPIServerPatch, err)
-		return err
 	}
 
 	return nil

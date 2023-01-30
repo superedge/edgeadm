@@ -45,11 +45,10 @@ const (
 )
 
 const (
-	ServiceKubernetes    = "kubernetes"
-	ServiceTunnelCloud   = "tunnel-cloud"
-	ServiceEdgeCoreDNS   = "edge-coredns"
-	ServiceTunnelCoreDNS = "tunnel-coredns"
-	CorednsDummy         = "tkeedgedns"
+	ServiceKubernetes  = "kubernetes"
+	ServiceTunnelCloud = "tunnel-cloud"
+	ServiceEdgeCoreDNS = "edge-coredns"
+	CorednsDummy       = "tkeedgedns"
 )
 
 const (
@@ -109,16 +108,15 @@ const (
 )
 
 const (
-	EdgeCertCM             = "edge-info"
-	EdgeNodeHostConfig     = "host-config"
-	InsecureRegistries     = "insecure-registries"
-	EdgeNodeDelayDomain    = "node-delay-domain"
-	LiteAPIServerTLSJSON   = "tls.json"
-	KubeAPIClusterIP       = "kube-api-cluster-ip"
-	KubeAPICACrt           = "kube-api-ca.crt"
-	LiteAPIServerCrt       = "lite-apiserver.crt"
-	LiteAPIServerKey       = "lite-apiserver.key"
-	TunnelCoreDNSClusterIP = "tunnel-coredns-cluster-ip"
+	EdgeCertCM           = "edge-info"
+	EdgeNodeHostConfig   = "host-config"
+	InsecureRegistries   = "insecure-registries"
+	EdgeNodeDelayDomain  = "node-delay-domain"
+	LiteAPIServerTLSJSON = "tls.json"
+	KubeAPIClusterIP     = "kube-api-cluster-ip"
+	KubeAPICACrt         = "kube-api-ca.crt"
+	LiteAPIServerCrt     = "lite-apiserver.crt"
+	LiteAPIServerKey     = "lite-apiserver.key"
 )
 
 const (
@@ -144,7 +142,7 @@ const LiteAPIServerTLSCfg = `[{"key":"/var/lib/kubelet/pki/kubelet-client-curren
 
 const (
 	ImageRepository = "superedge.tencentcloudcr.com/superedge"
-	Version         = "v0.7.0"
+	Version         = "v0.8.0"
 	CoreDNSVersion  = "1.6.9"
 	FlannelVersion  = "v0.12.0-edge-2.0"
 	InitCNIVersion  = "v0.8.3-edge-1.2"
