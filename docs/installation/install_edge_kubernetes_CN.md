@@ -129,7 +129,12 @@
     
 -   目前支持amd64、arm64两个体系；
 
-    >    其他体系可自行编译edgeadm和制作相应体系安装包，可参考 **5. 自定义Kubernetes静态安装包**
+    >   其他体系可自行编译edgeadm和制作相应体系安装包，可参考 **5. 自定义Kubernetes静态安装包**
+
+	>	经过内部测试的操作系统包括：`Ubuntu 16.04/18.04/20.04`  `Centos 7.5 - Centos 8.5之间各个版本`
+
+	>	Ubuntu22.04、Centos Steam9以及 Debian 12 版本由于 cgroupv2 的问题正在支持中，暂时还未默认支持
+			
 
 -   支持的Kubernetes版本：大于等于v1.18，提供的安装包仅提供Kubernetes v1.18.2 和 v1.20.6 两个版本；
 
@@ -177,7 +182,11 @@ arch=amd64 version=v0.7.0 kubernetesVersion=1.20.6 && rm -rf edgeadm-linux-* && 
 
 -  --runtime: 节点安装的容器运行时
    
-    >   如果需要安装containerd运行时则需要替换添加`--runtime=containerd`参数
+    >   1.18 和 1.20 版本默认使用 docker 运行时，如果需要安装containerd运行时则需要替换添加`--runtime=containerd`参数；1.22 版本默认使用 containerd 运行时，如果需要 docker 运行时，请添加`--runtime=docker`参数
+
+-  --skip-phases：安装节点时跳过某些步骤
+
+	>	有些用户想要使用自行安装的 docker/containerd 运行时，而不需要 edgeadm 部署自带的运行时，可以添加参数：`--skip-phases=container`
 
 其他参数和kubeadm含义完全相同，可按kubeadm的要求进行配置。
 

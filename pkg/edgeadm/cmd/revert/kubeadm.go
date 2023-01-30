@@ -41,7 +41,6 @@ func (r *revertAction) runKubeamdRevert() error {
 	}
 
 	yamlMap := map[string]string{
-		manifests.APP_TUNNEL_CORDDNS:              manifests.TunnelCorednsYaml,
 		manifests.APP_EDGE_HEALTH_ADMISSION:       manifests.EdgeHealthAdmissionYaml,
 		manifests.APP_EDGE_HEALTH_WEBHOOK:         manifests.EdgeHealthWebhookConfigYaml,
 		manifests.APP_APPLICATION_GRID_WRAPPER:    manifests.ApplicationGridWrapperYaml,

@@ -110,6 +110,16 @@ func NewEdgeAppsPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 				},
 				Run: updateKubeConfig,
 			},
+			{
+				Name:         "label-node",
+				Hidden:       true,
+				Short:        "Label master node",
+				InheritFlags: getAddonPhaseFlags("update-config"),
+				RunIf: func(data workflow.RunData) (bool, error) {
+					return config.IsEnableEdge, nil
+				},
+				Run: labelCLoudNode,
+			},
 		},
 	}
 }
@@ -166,25 +176,11 @@ func EnsureTunnelAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.Edgea
 		return err
 	}
 
-	// Deploy tunnel-coredns
-	option := map[string]interface{}{
-		"Namespace":    constant.NamespaceEdgeSystem,
-		"CoreDnsImage": common.GetEdgeDnsImage(edgeadmConf),
-	}
-
-	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
-	TunnelCoredns := common.ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err := kubeclient.CreateResourceWithFile(client, TunnelCoredns, option)
-	if err != nil {
-		return err
-	}
-	klog.Infof("Deploy %s success!", manifests.APP_TUNNEL_CORDDNS)
-
 	// Deploy tunnel-cloud
 	certSANs := cfg.APIServer.CertSANs
 	caKeyFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CAKeyName)
 	caCertFile := filepath.Join(cfg.CertificatesDir, kubeadmconstants.CACertName)
-	if err = common.DeployTunnelCloud(client, edgeadmConf.ManifestsDir,
+	if err := common.DeployTunnelCloud(client, edgeadmConf.ManifestsDir,
 		caCertFile, caKeyFile, edgeadmConf.TunnelCloudToken, certSANs, cfg, edgeadmConf); err != nil {
 		klog.Errorf("Deploy tunnel-cloud, error: %v", err)
 		return err
@@ -293,6 +289,24 @@ func updateKubeConfig(c workflow.RunData) error {
 
 }
 
+func labelCLoudNode(c workflow.RunData) error {
+	initConfiguration, _, client, err := getInitData(c)
+	if err != nil {
+		return err
+	}
+
+	masterLabel := map[string]string{
+		constant.CloudNodeLabelKey: constant.CloudNodeLabelValueEnable,
+	}
+
+	if err := kubeclient.AddNodeLabel(client, initConfiguration.NodeRegistration.Name, masterLabel); err != nil {
+		klog.Errorf("Add Cloud Node node label error: %v", err)
+		return err
+	}
+	return nil
+
+}
+
 func EnsureEdgeKubeConfig(cfg *kubeadmapi.InitConfiguration, edgeConf *cmd.EdgeadmConfig, client clientset.Interface) error {
 	if err := common.UpdateKubeProxyKubeconfig(client, cfg, edgeConf); err != nil {
 		klog.Errorf("Update kube-proxy config, error: %s", err)
@@ -388,16 +402,6 @@ func deleteTunnelAddon(c workflow.RunData) error {
 		return err
 	}
 	klog.Infof("Delete %s success!", manifests.APP_TUNNEL_CLOUD)
-
-	// Delete tunnel-coredns
-	option := map[string]interface{}{}
-	userManifests := filepath.Join(edgeadmConf.ManifestsDir, manifests.APP_TUNNEL_CORDDNS)
-	TunnelCoredns := common.ReadYaml(userManifests, manifests.TunnelCorednsYaml)
-	err = kubeclient.DeleteResourceWithFile(client, TunnelCoredns, option)
-	if err != nil {
-		return err
-	}
-	klog.Infof("Delete %s success!", manifests.APP_TUNNEL_CORDDNS)
 
 	return err
 

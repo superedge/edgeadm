@@ -155,10 +155,6 @@ func deployLiteAPIServer(kubeClient *kubernetes.Clientset, data phases.JoinData)
 	if dummyIp == nil {
 		return fmt.Errorf("The Edge Node dummy NIC address is not specified")
 	}
-	if err != nil {
-		klog.Errorf("Failed to create dummy, error: %v", err)
-		return err
-	}
 
 	liteAddr = dummyIp.String()
 
@@ -259,7 +255,7 @@ func NewAddNodeLabelPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 			if !ok {
 				return false, errors.New("installLiteAPIServer phase invoked with an invalid data struct")
 			}
-			if data.Cfg().ControlPlane == nil && !config.IsEnableEdge {
+			if data.Cfg().ControlPlane != nil || !config.IsEnableEdge {
 				addCloudNodeLabel(c)
 			}
 			return config.IsEnableEdge && data.Cfg().ControlPlane == nil, nil
