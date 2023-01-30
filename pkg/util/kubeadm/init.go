@@ -295,7 +295,7 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 func initContainerRuntimeFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 	flagSet.StringVar(
 		&edgeConfig.ContainerRuntime, constant.ContainerRuntime,
-		constant.ContainerRuntimeContainerd, "Container runtime support docker and containerd.",
+		constant.ContainerRuntimeDocker, "Container runtime support docker and containerd.",
 	)
 
 	flagSet.BoolVar(
