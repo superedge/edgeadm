@@ -34,9 +34,9 @@ data:
                     dns = "127.0.0.1"
                     server_name = "{{.MasterIP}}:{{.TunnelPersistentConnectionPort}}"
                     log_port = 51010
-            [mode.edge.httpproxy]
-                proxyip = "0.0.0.0"
-                proxyport = "51009"
+            [mode.edge.http_proxy]
+                ip = "0.0.0.0"
+                port = "51009"
                 
 ---
 apiVersion: v1
