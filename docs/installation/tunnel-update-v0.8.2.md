@@ -108,7 +108,7 @@ tunnel-cloud 主要在云端节点（Master 和 Worker 节点）部署了 `deplo
            livenessProbe:
              httpGet:
                path: /cloud/healthz
-               port: 51010
+               port: 7000
              initialDelaySeconds: 10
              periodSeconds: 60
              timeoutSeconds: 3
