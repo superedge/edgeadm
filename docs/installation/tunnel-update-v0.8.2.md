@@ -67,7 +67,7 @@ tunnel-cloud 主要在云端节点（Master 和 Worker 节点）部署了 `deplo
 - 更新 Deployment：`edge-system/tunnel-cloud` 以及 Service：`edge-system/tunnel-cloud`，参考下面的 yaml 文件：
   
   ```yaml
-    ---
+  ---
   apiVersion: rbac.authorization.k8s.io/v1
   kind: ClusterRole
   metadata:
