@@ -6,7 +6,7 @@
 
 ### 1.1 原始信息分析
 
-tunnel-cloud 主要在云端节点（Master 和 Worker 节点）部署了 `deployment/tunnel-cloud` ，同时主要依赖下面几个 Config
+tunnel-cloud 主要在云端节点（Master 和 Worker 节点）部署了 `deployment/tunnel-cloud` ，同时主要依赖下面几个 Configmap
 
 - `tunnel-cloud-token`：这里会记录之前版本 token 信息，用于 tunnel-edge 连接云端，这里的信息最好做一下备份；如果不需要修改 token，这个 cm 的信息保持不变
 
