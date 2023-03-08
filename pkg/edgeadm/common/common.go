@@ -249,6 +249,13 @@ func DeleteEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 	}
 	klog.Infof("Delete edge-health success!")
 
+	// Delete site-manager
+	if err := DeleteSiteManager(configPath, manifestsDir); err != nil {
+		klog.Errorf("Delete site-manager, error:%v", err)
+		return err
+	}
+	klog.Infof("Delete site-manager success!")
+
 	// Delete service-group
 	if err := DeleteServiceGroup(client); err != nil {
 		klog.Errorf("Delete serivce group, error: %s", err)
@@ -281,7 +288,7 @@ func DeleteEdgeAPPS(client kubernetes.Interface, manifestsDir, caCertFile, caKey
 }
 
 func ReadYaml(inputPath, defaults string) string {
-	var yaml string = defaults
+	var yaml = defaults
 	if util.IsFileExist(inputPath) {
 		yamlData, err := util.ReadFile(inputPath)
 		if err != nil {

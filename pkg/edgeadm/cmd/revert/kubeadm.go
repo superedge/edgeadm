@@ -45,6 +45,7 @@ func (r *revertAction) runKubeamdRevert() error {
 		manifests.APP_EDGE_HEALTH_WEBHOOK:         manifests.EdgeHealthWebhookConfigYaml,
 		manifests.APP_APPLICATION_GRID_WRAPPER:    manifests.ApplicationGridWrapperYaml,
 		manifests.APP_APPLICATION_GRID_CONTROLLER: manifests.ApplicationGridControllerYaml,
+		manifests.APP_SITE_MANAGER:                manifests.SiteManagerYaml,
 	}
 	option := map[string]interface{}{
 		"Namespace": constant.NamespaceEdgeSystem,
