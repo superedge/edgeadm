@@ -82,6 +82,15 @@ func NewEdgeAppsPhase(config *cmd.EdgeadmConfig) workflow.Phase {
 				Run: runEdgeHealthAddon,
 			},
 			{
+				Name:         "site-manager",
+				Short:        "Install the site-manager addon to edge Kubernetes cluster",
+				InheritFlags: getAddonPhaseFlags("site-manager"),
+				RunIf: func(data workflow.RunData) (bool, error) {
+					return config.IsEnableEdge, nil
+				},
+				Run: runsiteManagerAddon,
+			},
+			{
 				Name:         "edge-coredns",
 				Short:        "Install the edge-coredns addon to edge Kubernetes cluster",
 				InheritFlags: getAddonPhaseFlags("edge-coredns"),
@@ -224,6 +233,27 @@ func EnsureEdgeHealthAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.E
 
 	if err := common.DeployEdgeHealth(client, edgeadmConf.ManifestsDir, edgeadmConf); err != nil {
 		klog.Errorf("Deploy edge health, error: %s", err)
+		return err
+	}
+
+	return nil
+}
+
+func runsiteManagerAddon(c workflow.RunData) error {
+	cfg, edgeadmConf, client, err := getInitData(c)
+	if err != nil {
+		return err
+	}
+	return EnsureSiteManagerAddon(cfg, edgeadmConf, client)
+}
+
+func EnsureSiteManagerAddon(cfg *kubeadmapi.InitConfiguration, edgeadmConf *cmd.EdgeadmConfig, client clientset.Interface) error {
+	if err := common.EnsureEdgeSystemNamespace(client); err != nil {
+		return err
+	}
+
+	if err := common.DeploySiteManager(client, edgeadmConf.ManifestsDir, edgeadmConf); err != nil {
+		klog.Errorf("Deploy site-manager, error: %s", err)
 		return err
 	}
 

@@ -87,6 +87,12 @@ rules:
   - create
   - update
   - get
+- apiGroups:
+  - site.superedge.io
+  resources:
+  - nodeunits
+  verbs:
+  - "*"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
