@@ -165,6 +165,7 @@ spec:
         args:
         - --ip-masq
         - --kube-subnet-mgr
+        - --mac-path=/etc/flannel-mac
         resources:
           requests:
             cpu: "100m"
@@ -190,6 +191,8 @@ spec:
           mountPath: /run/flannel
         - name: flannel-cfg
           mountPath: /etc/kube-flannel/
+        - mountPath: /etc/flannel-mac
+          name: mac
       volumes:
       - name: run
         hostPath:
@@ -204,4 +207,8 @@ spec:
       - name: flannel-cfg
         configMap:
           name: kube-flannel-cfg
+      - hostPath:
+          path: /etc/flannel-mac
+          type: FileOrCreate
+        name: mac
 `
