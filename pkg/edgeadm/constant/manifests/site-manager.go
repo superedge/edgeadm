@@ -30,6 +30,7 @@ rules:
       - events
       - configmaps
       - persistentvolumes
+      - persistentvolumeclaims
     verbs:
       - "*"
   - apiGroups:
@@ -75,6 +76,23 @@ metadata:
   name: site-manager-cert
   namespace: {{.Namespace}}
 type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: site-manager
+  namespace: {{.Namespace}}
+spec:
+  clusterIP: None
+  ports:
+    - name: webhook
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+  selector:
+    app: site-manager
+  sessionAffinity: None
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
