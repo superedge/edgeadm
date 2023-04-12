@@ -283,7 +283,7 @@ func initClusterFlags(flagSet *flag.FlagSet, edgeConfig *cmd.EdgeadmConfig) {
 	)
 
 	flagSet.StringVar(
-		&edgeConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+		&edgeConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge related images registry, seperated from the default --image-repository (registry.k8s.io).",
 	)
 
 	flagSet.StringVar(

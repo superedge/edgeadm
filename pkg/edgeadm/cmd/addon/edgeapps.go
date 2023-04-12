@@ -47,11 +47,11 @@ func NewInstallEdgeAppsCMD() *cobra.Command {
 	)
 
 	cmd.Flags().StringVar(
-		&action.edgeadmConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+		&action.edgeadmConfig.EdgeImageRepository, constant.EdgeImageRepository, constant.ImageRepository, "Superedge related images registry, seperated from the default --image-repository (registry.k8s.io).",
 	)
 
 	cmd.Flags().StringVar(
-		&action.edgeadmConfig.EdgeVirtualAddr, constant.EdgeVirtualAddr, constant.DefaultEdgeVirtualAddr, "Superedge related images registry, seperated from the default --image-repository (k8s.gcr.io).",
+		&action.edgeadmConfig.EdgeVirtualAddr, constant.EdgeVirtualAddr, constant.DefaultEdgeVirtualAddr, "Superedge related images registry, seperated from the default --image-repository (registry.k8s.io).",
 	)
 	return cmd
 }
