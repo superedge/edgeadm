@@ -95,7 +95,7 @@ This program has the following advantages:
 
 -   One-click, easy to use, flexible and automated
 
-    The edgeadm init cluster and join node completely retain the original parameters and process of Kubeadm init/join, but automatically initialize the node and install the container when running, you can use the `edgeadm --enable-edge=fasle` parameter to install the native one-click For Kubernetes clusters, you can also use the `edgeadm --enable-edge=true` parameter to install an edge Kubernetes cluster with one click.
+    The edgeadm init cluster and join node completely retain the original parameters and process of Kubeadm init/join, but automatically initialize the node and install the container when running, you can use the `edgeadm --enable-edge=false` parameter to install the native one-click For Kubernetes clusters, you can also use the `edgeadm --enable-edge=true` parameter to install an edge Kubernetes cluster with one click.
 
     You can join any node as long as you can access the node where the Kube-apiserver is located, or you can join the master. Join master also continues the Kubeadm approach. To build highly available nodes, you can directly use join master to expand Master nodes when needed to achieve high availability.
 

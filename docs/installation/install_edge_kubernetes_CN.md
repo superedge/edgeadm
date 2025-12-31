@@ -101,7 +101,7 @@
 
 -   一键化，用起来简单、灵活、自动化
 
-    edgeadm init集群和join节点完全保留了kubeadm init/join原有的参数和流程，只是自动了初始化节点和安装容器运行时，可以用`edgeadm --enable-edge=fasle`参数来一键化安装原生Kubernetes集群， 也可以用`edgeadm --enable-edge=true`参数一键化来安装边缘Kubernetes集群。
+    edgeadm init集群和join节点完全保留了kubeadm init/join原有的参数和流程，只是自动了初始化节点和安装容器运行时，可以用`edgeadm --enable-edge=false`参数来一键化安装原生Kubernetes集群， 也可以用`edgeadm --enable-edge=true`参数一键化来安装边缘Kubernetes集群。
 
     可以Join任何只要能够访问到Kube-apiserver位于任何位置的节点, 也可以join master。join master也延续了kubeadm的的方式，搭建高可用的节点可以在需要的时候，直接用join master去扩容Master节点，实现高可用。
 
